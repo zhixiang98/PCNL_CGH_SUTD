@@ -1,0 +1,1 @@
+REFRESH_DELAY = 80 #Delay for tkinter update cycle. in terms of milliseconds
