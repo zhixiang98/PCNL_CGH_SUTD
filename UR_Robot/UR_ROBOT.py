@@ -1,5 +1,5 @@
-from PCNL_CGH_SUTD.rtde import rtde, rtde_config
-import PCNL_CGH_SUTD.UR_Robot.constants as c
+from rtde import rtde, rtde_config
+import UR_Robot.constants as c
 import sys
 import numpy as np
 """Class that manages the UR_Robot in general.Relies on the rtde package

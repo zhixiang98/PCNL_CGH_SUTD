@@ -30,7 +30,7 @@ import logging
 if sys.version_info[0] < 3:
   import serialize
 else:
-  from PCNL_repo.rtde import serialize
+  from rtde import serialize
 
 DEFAULT_TIMEOUT = 1.0
 

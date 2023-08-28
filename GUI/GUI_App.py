@@ -1,9 +1,10 @@
 import tkinter
-import constants as c
-from PCNL_CGH_SUTD.US_Screen.US_Screen_Share import US_Screen
+import GUI.constants as c
+
+from US_Screen.US_Screen_Share import US_SCREEN
 
 
-class GUI_App(tkinter.Tk, US_Screen):
+class GUI_APP(tkinter.Tk, US_SCREEN):
     """Class that manages the Frame in general
     ....
     Constants
@@ -17,7 +18,7 @@ class GUI_App(tkinter.Tk, US_Screen):
 
     def __init__(self, *args, **kwargs):
         tkinter.Tk.__init__(self, *args, **kwargs)
-        US_Screen.__init__(self)
+        US_SCREEN.__init__(self)
         container = tkinter.Frame(self)
         container.grid()
         self.geometry(c.WINDOW_RESOLUTION)
@@ -33,7 +34,7 @@ class GUI_App(tkinter.Tk, US_Screen):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame(c.WINDOWS_FRAME[0])  # c.WINDOWS_FRAME[0] should be Overview
+        self.show_frame("Overview")  # c.WINDOWS_FRAME[0] should be Overview
 
         self.my_menu = tkinter.Menu(self)
         self.config(menu=self.my_menu)
@@ -41,11 +42,11 @@ class GUI_App(tkinter.Tk, US_Screen):
         # ----------Adding  a MenuBar to navigate between pages------
         Main = tkinter.Menu(self.my_menu)
         Image_Settings = tkinter.Menu(self.my_menu)
-        self.my_menu.add_cascade(label="Overview", main=Main)
-        self.my_menu.add_cascade(label="Image_Setup", main=Image_Settings)
+        self.my_menu.add_cascade(label="Overview", menu=Main)
+        self.my_menu.add_cascade(label="Image_Setup", menu=Image_Settings)
 
         Main.add_command(label="Overview", command=lambda: self.show_frame("Overview"))
-        # Image_Settings.add_command(label="Parameters", command=lambda: self.open_seconday_window)
+        Image_Settings.add_command(label="Parameters")
         """#TODO add in a separate window when clicked, currently Image_Settings not in used..."""
 
     def show_frame(self, cont):
@@ -58,3 +59,7 @@ class GUI_App(tkinter.Tk, US_Screen):
     # secondary_window.config(width=300, height=200)
     # Create a button to close (destroy) this window.
     """TODO add in a separate window when clicked, currently Image_Settings not in used..."""
+
+
+app = GUI_APP()
+app.mainloop()
