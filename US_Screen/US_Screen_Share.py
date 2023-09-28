@@ -5,8 +5,9 @@ import pyigtl
 import time
 import threading
 import numpy as np
-
-class US_SCREEN:
+from PIL import Image
+import os
+class US_SCREEN():
     # def __init__(self):
     #     self.cap = cv2.VideoCapture(0)
     #     self.width = c.WIDTH
@@ -23,27 +24,34 @@ class US_SCREEN:
 
 
     def __init__(self):
-        self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.12", port=23338)
+        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.12", port=23338)
+        self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
+
         # if self.client.is_connected()  == False:
         #     print("not connected")
         #     return
         self.message = None
-        # self.imageSizeX = 1432
-        # self.imageSizeY = 740
-        self.imageSizeX = 716
-        self.imageSizeY = 370
+        self.imageSizeX = 1432
+        self.imageSizeY = 740
+        # self.imageSizeX = 716
+        # self.imageSizeY = 370
 
 
     def show_original(self):
         start_time = time.time()
-        self.message = self.client.wait_for_message(device_name="USImage", timeout=5)
-        img = self.message.image  # except:
+        # For purpose of layout
+        # img = Image.open("../GUI/sample_image01.png").convert("RGB")
+        # img = np.asarray(img)
 
-        img = np.squeeze(img.reshape(1, self.imageSizeX, self.imageSizeY).transpose(0, 1, 2))
-        # print(img)        # try:
-        #     img = self.message.image        # except:
-        # except:
-        #     img = None
+
+        # using pyigtl
+        self.message = self.client.wait_for_message(device_name="USImage", timeout=2)
+        try:
+            img = self.message.image
+            # img = np.squeeze(img.reshape(1, self.imageSizeX, self.imageSizeY).transpose(0, 1, 2))
+        except:
+            img = None
+            print("no image")
 
         return img
 

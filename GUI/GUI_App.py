@@ -2,6 +2,7 @@ import tkinter
 import GUI.constants as c
 
 from US_Screen.US_Screen_Share import US_SCREEN
+from US_Screen.US_Image import US_IMAGE
 
 
 class GUI_APP(tkinter.Tk, US_SCREEN):
@@ -18,7 +19,9 @@ class GUI_APP(tkinter.Tk, US_SCREEN):
 
     def __init__(self, *args, **kwargs):
         tkinter.Tk.__init__(self, *args, **kwargs)
-        US_SCREEN.__init__(self)
+        # US_SCREEN.__init__(self)
+        # US_IMAGE.__init__(self)
+
         container = tkinter.Frame(self)
         container.grid()
         self.geometry(c.WINDOW_RESOLUTION)

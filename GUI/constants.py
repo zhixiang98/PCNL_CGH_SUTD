@@ -3,6 +3,6 @@ from GUI.Frame import Overviews
 from GUI.Frame import Parameters
 from Frame import constants
 
-WINDOW_RESOLUTION = "1800x950"  # Application Window Resolution
+WINDOW_RESOLUTION = "1950x950"  # Application Window Resolution
 WINDOWS_FRAME = (Overviews.Overview, Parameters.Parameter)  # Tupple name of the Windows Name
 

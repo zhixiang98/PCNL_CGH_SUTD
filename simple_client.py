@@ -15,12 +15,12 @@ from datetime import datetime
 import numpy as np
 
 
-directory = r"C:\Users\zhixi\Documents\PCNL_CGH_SUTD\Img_source"
+directory = r"C:\Users\zhixi\Documents\PCNL_CGH_SUTD\Img_source_one"
 
 # cv2.namedWindow("test")
 # client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
 
-client = pyigtl.OpenIGTLinkClient(host="192.168.0.12", port=23338)
+client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
 
 os.chdir(directory)
 

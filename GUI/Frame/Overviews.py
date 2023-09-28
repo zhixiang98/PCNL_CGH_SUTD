@@ -6,15 +6,20 @@ import cv2
 import PIL.Image, PIL.ImageTk
 import threading
 from tkinter import ttk
+import US_Screen.US_Image
+
 
 class Overview(tkinter.Frame):
 
     def __init__(self, parent, cont):
         tkinter.Frame.__init__(self, parent)
-        self.img = None
+        self.igtl_initialised = False
+        # US_Screen.US_Image.US_IMAGE.__init__(self)
+        self.US_image = None
+
+        self.display = None
         self.cont = cont
         self.delay = c.REFRESH_DELAY
-        # self.img = None
 
         self.origin_selected = False  # Bool False if origin is not selected yet
         self.target_selected = False  # Bool_False if target is not selected yet
@@ -54,10 +59,10 @@ class Overview(tkinter.Frame):
                                                    width=c.BUTTON_WIDTH, command=lambda: self.Select_Origin())
         self.Select_Origin_Button.grid(row=c.ORIGIN_BUTTON_ROW, column=c.ORIGIN_BUTTON_COLUMN, padx=c.PADX, pady=c.PADY)
 
-        self.Select_Target_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.SELECT_TARGET_BUTTON_TEXT,
-                                                   width=c.BUTTON_WIDTH, command=lambda: self.Select_Target())
-        self.Select_Target_Button.grid(row=c.SELECT_TARGET_BUTTON_ROW, column=c.SELECT_TARGET_BUTTON_COLUMN,
-                                       padx=c.PADX, pady=c.PADY)
+        # self.Select_Target_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.SELECT_TARGET_BUTTON_TEXT,
+        #                                            width=c.BUTTON_WIDTH, command=lambda: self.Select_Target())
+        # self.Select_Target_Button.grid(row=c.SELECT_TARGET_BUTTON_ROW, column=c.SELECT_TARGET_BUTTON_COLUMN,
+        #                                padx=c.PADX, pady=c.PADY)
 
         self.Theta_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.THETA_BUTTON_TEXT,
                                            command=lambda: self.calculate_target_ange(), width=c.BUTTON_WIDTH)
@@ -75,6 +80,16 @@ class Overview(tkinter.Frame):
                                                                width=c.BUTTON_WIDTH)
         self.Convert_Pixel2Coordinates_Button.grid(row=c.CONVERT_PIXEL2COORDINATES_ROW,
                                                    column=c.CONVERT_PIXEL2COORDINATES_COLUMN, padx=c.PADX, pady=c.PADY)
+
+        self.Depth_Combo_Box = ttk.Combobox(self.Image_Setting_Label_Frame,
+                                            values=[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                                                    23,
+                                                    24])
+        self.Depth_Combo_Box.grid(row=c.DEPTH_COMBO_BOX_ROW, column=c.DEPTH_COMBO_BOX_COLUMN, padx=c.PADX, pady=c.PADY)
+
+        self.Connect_IGTL_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.RECONNECT_IMAGE_TEXT,
+                                                  command=lambda: self.connection_igtl_client(), width=c.BUTTON_WIDTH)
+        self.Connect_IGTL_Button.grid(row=c.CONNECT_IGT_BUTTON_ROW, column=c.CONNECT_IGT_BUTTON_COLUMN)
 
         # --- CB tkinter variables---
         self.Show_Origin_CB_Var = tkinter.IntVar()
@@ -112,34 +127,36 @@ class Overview(tkinter.Frame):
         # --------US_INFO_LABEL_FRAME--------------
 
         self.US_INFO_LABEL_FRAME = tkinter.LabelFrame(self, text="Ultrasound Information")
-        self.US_INFO_LABEL_FRAME.place(x=1580, y=0, width=220, height=300)
+        self.US_INFO_LABEL_FRAME.place(x=c.US_INFO_FRAME_X, y=c.US_INFO_FRAME_Y, width=c.US_INFO_FRAME_WIDTH,
+                                       height=c.US_INFO_FRAME_HEIGHT)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_COORDINATES).grid(row=1, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_COORDINATES).grid(row=2, column=1)
         tkinter.Label(self.US_INFO_LABEL_FRAME, text="X US Coordinates: ").grid(row=1, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Y US Coordinates: ").grid(row=2, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.Y_US_COORDINATES).grid(row=2, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Y US Coordinates: ").grid(row=3, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.Y_US_COORDINATES).grid(row=4, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Theta: ").grid(row=4, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.THETA).grid(row=4, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Theta: ").grid(row=5, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.THETA).grid(row=6, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="X Surface Coordinates: ").grid(row=5, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_SURFACE_TARGET_COORDINATES).grid(row=5, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="X Surface Coordinates: ").grid(row=7, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_SURFACE_TARGET_COORDINATES).grid(row=8, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Y Surface Coordinates: ").grid(row=6, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.Y_US_SURFACE_TARGET_COORDINATES).grid(row=6, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Y Surface Coordinates: ").grid(row=9, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.Y_US_SURFACE_TARGET_COORDINATES).grid(row=10,
+                                                                                                        column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="offset x distance: ").grid(row=7, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.OFFSET_X_DISTANCE).grid(row=7, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="offset x distance: ").grid(row=11, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.OFFSET_X_DISTANCE).grid(row=12, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="offset d distance: ").grid(row=8, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.OFFSET_D_DISTANCE).grid(row=8, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="offset d distance: ").grid(row=13, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.OFFSET_D_DISTANCE).grid(row=14, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="move actuator distance: ").grid(row=9, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.MOVE_DISTANCE_ACTUATOR).grid(row=9, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="move actuator distance: ").grid(row=15, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.MOVE_DISTANCE_ACTUATOR).grid(row=16, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="move UR Robot by: ").grid(row=10, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.MOVE_UR_ROBOT_BY).grid(row=10, column=2)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="move UR Robot by: ").grid(row=17, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.MOVE_UR_ROBOT_BY).grid(row=18, column=1)
 
         # ---Tkinter Variables ---
         self.X_DISTANCE_TO_MOVE = tkinter.DoubleVar()
@@ -152,7 +169,8 @@ class Overview(tkinter.Frame):
         self.INPUT_REGISTER05 = tkinter.DoubleVar()
 
         self.Robot_Data_Frame = tkinter.LabelFrame(self, text="Robot Data Information")
-        self.Robot_Data_Frame.place(x=1051, y=0, width=530, height=300)
+        self.Robot_Data_Frame.place(x=c.ROBOT_DATA_FRAME_X, y=c.ROBOT_DATA_FRAME_Y, width=c.ROBOT_DATA_FRAME_WIDTH,
+                                    height=c.ROBOT_DATA_FRAME_HEIGHT)
 
         self.Robot_TCP_Frame = tkinter.LabelFrame(self.Robot_Data_Frame, text="Robot TCP")
         self.Robot_TCP_Frame.place(x=0, y=50, width=525, height=50)
@@ -247,36 +265,38 @@ class Overview(tkinter.Frame):
         self.X_NEEDLE_VAR = tkinter.StringVar()
         # --X_Axis_Element
         self.NEEDLE_DRIVER_FRAME = tkinter.LabelFrame(self, text="Needle Driver")
-        self.NEEDLE_DRIVER_FRAME.place(x=1051, y=305, height=250, width=525)
+        self.NEEDLE_DRIVER_FRAME.place(x=c.NEEDLE_DRIVER_FRAME_X, y=c.NEEDLE_DRIVER_FRAME_Y,
+                                       height=c.NEEDLE_DRIVER_FRAME_HEIGHT, width=c.NEEDLE_DRIVER_FRAME_WIDTH)
 
         self.NEEDLE_X_MOVE_FRAME = tkinter.LabelFrame(self.NEEDLE_DRIVER_FRAME, text="X_Axis")
         self.NEEDLE_X_MOVE_FRAME.place(x=10, y=10, width=500, height=60)
 
         self.X_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="X+",
-                                           command=lambda: self.toggle_button("X+"), padx=5, pady=5)
+                                                   command=lambda: self.toggle_button("X+"), padx=5, pady=5)
         self.X_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.X_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="X-",
-                                            command=lambda: self.toggle_button("X-"), padx=5, pady=5)
+                                                    command=lambda: self.toggle_button("X-"), padx=5, pady=5)
         self.X_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
-        self.X_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="HOME", command=lambda: self.home_button("X"),
-                                           padx=5, pady=5)
+        self.X_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="HOME",
+                                                   command=lambda: self.home_button("X"),
+                                                   padx=5, pady=5)
         self.X_HOME_TOGGLE_BUTTON.grid(row=0, column=2, sticky="nsew")
 
         self.X_RESET_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="RESET", padx=5, pady=5,
-                                            command=lambda: self.reset_button("X"))
+                                                    command=lambda: self.reset_button("X"))
         self.X_RESET_TOGGLE_BUTTON.grid(row=0, column=3, sticky="nsew")
 
         self.X_NEEDLE_ENTRY_BOX = tkinter.Entry(self.NEEDLE_X_MOVE_FRAME, textvariable=self.X_NEEDLE_VAR, width=10)
         self.X_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.X_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                           command=lambda: self.x_move_command(self.X_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.x_move_command(self.X_NEEDLE_ENTRY_BOX.get()))
         self.X_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.X_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="STOP", padx=5, pady=5,
-                                           command=lambda: self.stop_button("X"))
+                                                   command=lambda: self.stop_button("X"))
         self.X_NEEDLE_STOP_BUTTON.grid(row=0, column=6, sticky="nsew")
 
         self.X_Label_POSITION = tkinter.Label(self.NEEDLE_X_MOVE_FRAME, text="X Value: ")
@@ -289,30 +309,30 @@ class Overview(tkinter.Frame):
         self.NEEDLE_Y_MOVE_FRAME.place(x=10, y=75, width=500, height=60)
 
         self.Y_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="Y+",
-                                           command=lambda: self.toggle_button("Y+"), padx=5, pady=5)
+                                                   command=lambda: self.toggle_button("Y+"), padx=5, pady=5)
         self.Y_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.Y_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="Y-",
-                                            command=lambda: self.toggle_button("Y-"), padx=5, pady=5)
+                                                    command=lambda: self.toggle_button("Y-"), padx=5, pady=5)
         self.Y_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.Y_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="HOME", padx=5, pady=5,
-                                           command=lambda: self.home_button("Y"))
+                                                   command=lambda: self.home_button("Y"))
         self.Y_HOME_TOGGLE_BUTTON.grid(row=0, column=2, sticky="nsew")
 
         self.Y_RESET_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="RESET", padx=5, pady=5,
-                                            command=lambda: self.reset_button("Y"))
+                                                    command=lambda: self.reset_button("Y"))
         self.Y_RESET_TOGGLE_BUTTON.grid(row=0, column=3, sticky="nsew")
 
         self.Y_NEEDLE_ENTRY_BOX = tkinter.Entry(self.NEEDLE_Y_MOVE_FRAME, textvariable=self.Y_NEEDLE_VAR, width=10)
         self.Y_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.Y_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                           command=lambda: self.y_move_command(self.Y_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.y_move_command(self.Y_NEEDLE_ENTRY_BOX.get()))
         self.Y_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.Y_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="STOP", padx=5, pady=5,
-                                           command=lambda: self.stop_button("Y"))
+                                                   command=lambda: self.stop_button("Y"))
         self.Y_NEEDLE_STOP_BUTTON.grid(row=0, column=6, sticky="nsew")
 
         self.Y_POSITION = tkinter.Label(self.NEEDLE_Y_MOVE_FRAME, text="Y Value: ")
@@ -325,42 +345,43 @@ class Overview(tkinter.Frame):
         self.NEEDLE_Z_MOVE_FRAME.place(x=10, y=140, width=500, height=60)
 
         self.Z_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="Z+",
-                                           command=lambda: self.toggle_button("Z+"), padx=5, pady=5)
+                                                   command=lambda: self.toggle_button("Z+"), padx=5, pady=5)
         self.Z_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.Z_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="Z-",
-                                            command=lambda: self.toggle_button("Z-"), padx=5, pady=5)
+                                                    command=lambda: self.toggle_button("Z-"), padx=5, pady=5)
         self.Z_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.Z_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="HOME", padx=5, pady=5,
-                                           command=lambda: self.home_button("Z"))
+                                                   command=lambda: self.home_button("Z"))
         self.Z_HOME_TOGGLE_BUTTON.grid(row=0, column=2, sticky="nsew")
 
         self.Z_RESET_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="RESET", padx=5, pady=5,
-                                            command=lambda: self.reset_button("Z"))
+                                                    command=lambda: self.reset_button("Z"))
         self.Z_RESET_TOGGLE_BUTTON.grid(row=0, column=3, sticky="nsew")
 
         self.Z_NEEDLE_ENTRY_BOX = tkinter.Entry(self.NEEDLE_Z_MOVE_FRAME, textvariable=self.Z_NEEDLE_VAR, width=10)
         self.Z_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.Z_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                           command=lambda: self.z_move_command(self.Z_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.z_move_command(self.Z_NEEDLE_ENTRY_BOX.get()))
         self.Z_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.Z_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="STOP", padx=5, pady=5,
-                                           command=lambda: self.stop_button("Z"))
+                                                   command=lambda: self.stop_button("Z"))
         self.Z_NEEDLE_STOP_BUTTON.grid(row=0, column=6, sticky="nsew")
 
         self.Z_POSITION = tkinter.Label(self.NEEDLE_Z_MOVE_FRAME, text="Z Value: ")
         self.Z_POSITION.grid(row=0, column=7, sticky="nsew", padx=10)
 
         self.CONNECT_NEEDLE_DRIVER_BUTTON = tkinter.Button(self.NEEDLE_DRIVER_FRAME, text="Connect",
-                                                   command=lambda: self.connect_needle_driver())
+                                                           command=lambda: self.connect_needle_driver())
         self.CONNECT_NEEDLE_DRIVER_BUTTON.place(x=10, y=205, width=100)
 
-        #-------Tkinter Treeview Elements-------
+        # -------Tkinter Treeview Elements-------
         self.treeviewframe = tkinter.LabelFrame(self, text="Treeview")
-        self.treeviewframe.place(x=1051, y=560, width=739, height=450)
+        self.treeviewframe.place(x=c.TREEVIEW_FRAME_X, y=c.TREEVIEW_FRAME_Y, width=c.TREEVIEW_WIDTH,
+                                 height=c.TREEVIEW_HEIGHT)
         self.treeview = ttk.Treeview(self.treeviewframe)
         self.treeview['columns'] = ("Command", "X_Value", "Y_Value", "Z_Value")
         self.treeview.column("#0", width=0, stretch="NO")
@@ -375,7 +396,6 @@ class Overview(tkinter.Frame):
         self.treeview.heading("Y_Value", text="Y_Value", anchor="w")
         self.treeview.heading("Z_Value", text="Z_Value", anchor="w")
 
-
         self.treeview.grid(row=0, column=0, columnspan=4)
 
         # New Data entry
@@ -384,27 +404,29 @@ class Overview(tkinter.Frame):
 
         # Remove entry
         self.removentrybutton = tkinter.Button(self.treeviewframe, text="Remove", width=10,
-                                       command=lambda: self.removentry())
+                                               command=lambda: self.removentry())
         self.removentrybutton.grid(row=4, column=1)
 
         # moveup entry
         self.moveupentrybutton = tkinter.Button(self.treeviewframe, text="Move Up", width=10,
-                                        command=lambda: self.moveuptree())
+                                                command=lambda: self.moveuptree())
         self.moveupentrybutton.grid(row=4, column=2)
 
         # movedown entry
         self.movedownbutton = tkinter.Button(self.treeviewframe, text="Move Down", width=10,
-                                     command=lambda: self.movedowntree())
+                                             command=lambda: self.movedowntree())
         self.movedownbutton.grid(row=4, column=3)
 
         # # Import Excel file
         # self.filebutton = tkinter.Button(self.treeviewframe, text="Import", width=10, command=lambda: self.fileopen())
         # self.filebutton.grid(row=5, column=0)
         # Clear all in treeview
-        self.clearallbutton = tkinter.Button(self.treeviewframe, text="Clear All", width=10, command=lambda: self.clearall())
+        self.clearallbutton = tkinter.Button(self.treeviewframe, text="Clear All", width=10,
+                                             command=lambda: self.clearall())
         self.clearallbutton.grid(row=5, column=1)
         # Execute
-        self.executetree = tkinter.Button(self.treeviewframe, text="Execute", width=24, command=lambda: self.executiontree())
+        self.executetree = tkinter.Button(self.treeviewframe, text="Execute", width=24,
+                                          command=lambda: self.executiontree())
         self.executetree.grid(row=5, column=2, columnspan=2)
 
         # Input new data field
@@ -432,28 +454,49 @@ class Overview(tkinter.Frame):
         self.stepentry = tkinter.Entry(self.treeviewframe, width=15)
         self.stepentry.grid(row=2, column=3)
 
-        #---------End of treeview  elements -------
-
+        # ---------End of treeview  elements -------
 
         self.update_canvas()
+
     def update_canvas(self):
         start_time = time.time()
-        if (self.cont.client.is_connected()) == False:
-            print("CLIENT IS NOT CONNECTED")
-            return
-        try:
-            self.img = self.cont.show_original()
-            # self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
-            self.img = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.img))
-            self.Canvas.create_image(0, 0, image=self.img, anchor="nw")
 
-        except:
-            print("No Image")
-            pass
+        # if (self.image_temp.client.is_connected()) == False:
+        #     print("CLIENT IS NOT CONNECTED")
+        #     return
+
+        # try:
+        #     self.img = self.cont.show_original()
+        #     # self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
+        #     self.img = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.img))
+        #     self.Canvas.create_image(0, 0, image=self.img, anchor="nw")
+        #
+        # except:
+        #     print("No Image")
+        #     pass
+
+        # if self.US_image != None:
+        #     # self.display = self.US_image.show_original_image()
+        #     self.display = self.US_image.receive_image_message()
+        #     self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.display))
+        #     self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
+        #
         try:
+            self.image_temp.show_original_image()
+            self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.image_temp.img))
+            self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
             print("FPS: ", 1.0 / (time.time() - start_time))
-        except:
-            print("Fps of canvas not calculated")
+        except Exception as error:
+            print("No image can be displayed", error)
+
+        # try:
+        #     self.display = self.img.show_original_image()
+        #     self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.display))
+        #     self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
+        #
+        # except Exception as error:
+        #     print("An error occurred:", error)  # An error occurred: name 'x' is not defined
+
         self.after(self.delay, self.update_canvas)
 
     def Delete_Entry(self):
@@ -676,3 +719,21 @@ class Overview(tkinter.Frame):
             elif axis == "Z-":
                 command_wr = "WR MR04301 0\r"
         self.send_command(command_wr)
+
+    def Select_Origin(self):
+        if self.origin_selected == False:
+            self.select_origin_img = self.cont.show_original()
+        else:
+            # self.select_origin_img = self.cache1
+            print("ERROR")
+        cv2.imshow("Select Origin", self.select_origin_img)
+
+        pass
+
+    def connection_igtl_client(self):
+        if self.igtl_initialised == False:
+            self.image_temp = US_Screen.US_Image.US_IMAGE()
+            self.igtl_initialised = True
+        else:
+
+            self.image_temp.connect_igtl_client()
