@@ -64,7 +64,7 @@ class Overview(tkinter.Frame):
 
         self.Theta_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.THETA_BUTTON_TEXT,
                                            command=lambda: self.calculate_target_ange(), width=c.BUTTON_WIDTH)
-        self.Theta_Button.grid(row=c.SELECT_TARGET_BUTTON_ROW, column=c.SELECT_TARGET_BUTTON_COLUMN, padx=c.PADX,
+        self.Theta_Button.grid(row=c.THETA_BUTTON_ROW, column=c.THETA_BUTTON_COLUMN, padx=c.PADX,
                                pady=c.PADY)
 
         self.Draw_Needle_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.DRAW_NEEDLE_BUTTON_TEXT,
@@ -100,27 +100,27 @@ class Overview(tkinter.Frame):
         self.show_projected_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_projected_line",
                                                           variable=self.Show_Projected_Line_CB_Var, onvalue=1,
                                                           offvalue=0)
-        self.show_projected_line_CB.grid(row=2, column=4, padx=20, columnspan=2, sticky="w")
+        self.show_projected_line_CB.grid(row=c.SHOW_PROJECTED_LINE_CB_ROW, column=c.SHOW_PROJECTED_LINE_CB_COLUMN, padx=20, columnspan=2, sticky="w")
 
         self.show_origin_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_origin",
                                                   variable=self.Show_Origin_CB_Var, onvalue=1,
                                                   offvalue=0)
-        self.show_origin_CB.grid(row=2, column=0, padx=20)
+        self.show_origin_CB.grid(row=c.SHOW_ORIGIN_CB_ROW, column=c.SHOW_ORIGIN_CB_COLUMN, padx=20)
 
         self.show_needle_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_needle",
                                                   variable=self.Show_Needle_CB_Line_Var,
                                                   onvalue=1, offvalue=0)
-        self.show_needle_CB.grid(row=2, column=2, padx=20)
+        self.show_needle_CB.grid(row=c.SHOW_NEEDLE_CB_ROW, column=c.SHOW_NEEDLE_CB_COLUMN, padx=20)
 
         self.show_target_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_target",
                                                   variable=self.Show_Target_CB_Var,
                                                   onvalue=1, offvalue=0)
-        self.show_target_CB.grid(row=2, column=1, padx=20)
+        self.show_target_CB.grid(row=c.SHOW_TARGET_CB_ROW, column=c.SHOW_TARGET_CB_COLUMN, padx=20)
 
         self.show_US_Coord_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_coordinates",
                                                     variable=self.Show_US_Coord_CB_Var,
                                                     onvalue=1, offvalue=0)
-        self.show_US_Coord_CB.grid(row=2, column=3, padx=20)
+        self.show_US_Coord_CB.grid(row=c.SHOW_US_COORD_CB_ROW, column=c.SHOW_US_COORD_CB_COLUMN, padx=20)
 
         # --------US_INFO_LABEL_FRAME--------------
 
@@ -267,7 +267,7 @@ class Overview(tkinter.Frame):
                                        height=c.NEEDLE_DRIVER_FRAME_HEIGHT, width=c.NEEDLE_DRIVER_FRAME_WIDTH)
 
         self.NEEDLE_X_MOVE_FRAME = tkinter.LabelFrame(self.NEEDLE_DRIVER_FRAME, text="X_Axis")
-        self.NEEDLE_X_MOVE_FRAME.place(x=10, y=10, width=500, height=60)
+        self.NEEDLE_X_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_HEIGHT)
 
         self.X_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="X+",
                                                    command=lambda: self.toggle_button("X+"), padx=5, pady=5)
@@ -304,7 +304,7 @@ class Overview(tkinter.Frame):
         self.Y_NEEDLE_VAR = tkinter.StringVar()
         # --Y_AYis_Element
         self.NEEDLE_Y_MOVE_FRAME = tkinter.LabelFrame(self.NEEDLE_DRIVER_FRAME, text="Y_Axis")
-        self.NEEDLE_Y_MOVE_FRAME.place(x=10, y=75, width=500, height=60)
+        self.NEEDLE_Y_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_HEIGHT)
 
         self.Y_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="Y+",
                                                    command=lambda: self.toggle_button("Y+"), padx=5, pady=5)
@@ -340,7 +340,7 @@ class Overview(tkinter.Frame):
         self.Z_NEEDLE_VAR = tkinter.StringVar()
         # --Z_Axis_Element
         self.NEEDLE_Z_MOVE_FRAME = tkinter.LabelFrame(self.NEEDLE_DRIVER_FRAME, text="Z_Axis")
-        self.NEEDLE_Z_MOVE_FRAME.place(x=10, y=140, width=500, height=60)
+        self.NEEDLE_Z_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_HEIGHT)
 
         self.Z_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="Z+",
                                                    command=lambda: self.toggle_button("Z+"), padx=5, pady=5)
@@ -375,6 +375,10 @@ class Overview(tkinter.Frame):
         self.CONNECT_NEEDLE_DRIVER_BUTTON = tkinter.Button(self.NEEDLE_DRIVER_FRAME, text="Connect",
                                                            command=lambda: self.connect_needle_driver())
         self.CONNECT_NEEDLE_DRIVER_BUTTON.place(x=10, y=205, width=100)
+
+
+        #TODO: ADD A scrolled label with logging function?
+
 
         # -------Tkinter Treeview Elements-------
         self.treeviewframe = tkinter.LabelFrame(self, text="Treeview")

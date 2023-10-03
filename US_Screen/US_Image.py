@@ -87,19 +87,27 @@ class US_IMAGE():
         self.cache2img: image data of the cache image of the drawn needle_line image
         
         """
-        self.img = None #live time image that is shown on the UI
+        self.img = None #live time image that is shown on the UI, can be stacked or single parse to Overviews
         self.select_origin_img = None #select origin image
         self.cache1img = None # image that is "cleared" to be used for the select_origin function
         self.cache2img = None # image that is "cleared" to be used for the draw_needle_line function
 
 
+        self.single_img = None
+        self.stacked_img = None
+
         #----Boolean variables for origin button clicked------
         """
         Boolean variables that help to navigate the logic of the select_origin() and draw_needle_line()
+        
+        self.stacked_images_selected: False -> only the single live US will be shown, True -> stacked image of 2x2 will be shown
         """
 
         self.origin_selected = False
         self.draw_needle_line_selected = False
+
+        self.stacked_images_selected = False
+
 
     def stackImages(self, scale, imgArray):
         """stackImages function allows for multiple image array to be displayed side by side. In a row x column square grid
@@ -162,7 +170,7 @@ class US_IMAGE():
          ------
 
          """
-        self.img = self.stackImages(0.5, ([img1, img2], [img3, img4]))
+        self.stacked_img = self.stackImages(0.5, ([img1, img2], [img3, img4]))
 
 
     def connect_igtl_client(self):
@@ -192,16 +200,23 @@ class US_IMAGE():
         # #used for igtl settings with US from CreativeMed
         # self.img = self.message.image
         # print(type(self.img))
-        # self.img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
-        # self.img = np.asarray(self.img)
+        # self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
+        # self.single_img = np.asarray(self.single_img)
 
         pass
 
-    def show_live_image(self):
-        """Display a single live image of the Ultra Sound screen. Updates self.img
+    def show_live_image(self,img1=None , img2=None, img3 =None, img4 =None):
+        """Display a single live image of the Ultra Sound screen. Updates self.img to be either self.single_img or self.stacked_img
         """
-        # used for igtl settings with US from CreativeMed
+        # #used for igtl settings with US from CreativeMed
         # self.receive_image_message()
+        # if not self.stacked_images_selected:
+        #     self.img = self.single_img
+        # else:
+        #     self.show_live_image_stacked(img1, img2, img3, img4)
+        #     self.img = self.stacked_img
+        #
+
 
         # placeholder image
         self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
