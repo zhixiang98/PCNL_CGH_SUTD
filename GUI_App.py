@@ -1,5 +1,5 @@
 import tkinter
-import GUI.constants as c
+import constants as c
 
 from US_Screen.US_Screen_Share import US_SCREEN
 from US_Screen.US_Image import US_IMAGE

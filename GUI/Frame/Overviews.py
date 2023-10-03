@@ -13,6 +13,7 @@ class Overview(tkinter.Frame):
 
     def __init__(self, parent, cont):
         tkinter.Frame.__init__(self, parent)
+        self.main_image = None
         self.igtl_initialised = False
         # US_Screen.US_Image.US_IMAGE.__init__(self)
         self.US_image = None
@@ -21,9 +22,6 @@ class Overview(tkinter.Frame):
         self.cont = cont
         self.delay = c.REFRESH_DELAY
 
-        self.origin_selected = False  # Bool False if origin is not selected yet
-        self.target_selected = False  # Bool_False if target is not selected yet
-        self.needle_line_drawn = False  # Bool_False if needle line is not drawn yet
 
         # --- Tkinter Variables ---
         # """Tkinter Variables will be in CAPs"""
@@ -56,7 +54,7 @@ class Overview(tkinter.Frame):
 
         # -- Image_Setting_Label_Frame---
         self.Select_Origin_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.ORIGIN_BUTTON_TEXT,
-                                                   width=c.BUTTON_WIDTH, command=lambda: self.Select_Origin())
+                                                   width=c.BUTTON_WIDTH, command=lambda: self.Select_Origin_Button_Function())
         self.Select_Origin_Button.grid(row=c.ORIGIN_BUTTON_ROW, column=c.ORIGIN_BUTTON_COLUMN, padx=c.PADX, pady=c.PADY)
 
         # self.Select_Target_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.SELECT_TARGET_BUTTON_TEXT,
@@ -70,7 +68,7 @@ class Overview(tkinter.Frame):
                                pady=c.PADY)
 
         self.Draw_Needle_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.DRAW_NEEDLE_BUTTON_TEXT,
-                                                 command=lambda: self.draw_needle_line(), width=c.BUTTON_WIDTH)
+                                                 command=lambda: self.Draw_Needle_Button_Function(), width=c.BUTTON_WIDTH)
         self.Draw_Needle_Button.grid(row=c.DRAW_NEEDLE_BUTTON_ROW, column=c.DRAW_NEEDLE_BUTTON_COLUMN, padx=c.PADX,
                                      pady=c.PADY)
 
@@ -461,7 +459,7 @@ class Overview(tkinter.Frame):
     def update_canvas(self):
         start_time = time.time()
 
-        # if (self.image_temp.client.is_connected()) == False:
+        # if (self.main_image.client.is_connected()) == False:
         #     print("CLIENT IS NOT CONNECTED")
         #     return
 
@@ -480,12 +478,11 @@ class Overview(tkinter.Frame):
         #     self.display = self.US_image.receive_image_message()
         #     self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.display))
         #     self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
-        #
+
         try:
-            self.image_temp.show_original_image()
-            self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.image_temp.img))
+            self.main_image.show_live_image()
+            self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.main_image.img))
             self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
-            print("FPS: ", 1.0 / (time.time() - start_time))
         except Exception as error:
             print("No image can be displayed", error)
 
@@ -720,20 +717,26 @@ class Overview(tkinter.Frame):
                 command_wr = "WR MR04301 0\r"
         self.send_command(command_wr)
 
-    def Select_Origin(self):
-        if self.origin_selected == False:
-            self.select_origin_img = self.cont.show_original()
-        else:
-            # self.select_origin_img = self.cache1
+    def Select_Origin_Button_Function(self):
+        try:
+            self.main_image.select_origin()
+        except :
             print("ERROR")
-        cv2.imshow("Select Origin", self.select_origin_img)
+            pass
 
-        pass
+    def Draw_Needle_Button_Function(self):
+        try:
+            self.main_image.draw_needle_line()
+        except:
+            print("ERROR")
+            pass
 
     def connection_igtl_client(self):
-        if self.igtl_initialised == False:
-            self.image_temp = US_Screen.US_Image.US_IMAGE()
+        if not self.igtl_initialised:
+            self.main_image = US_Screen.US_Image.US_IMAGE()
             self.igtl_initialised = True
         else:
 
-            self.image_temp.connect_igtl_client()
+            self.main_image.connect_igtl_client()
+
+
