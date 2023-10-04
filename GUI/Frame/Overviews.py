@@ -482,6 +482,10 @@ class Overview(tkinter.Frame):
         #     self.display = self.US_image.receive_image_message()
         #     self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.display))
         #     self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
+        try:
+            self.CheckCB()
+        except:
+            print("NONE OBJECT NO CB")
 
         try:
             self.main_image.show_live_image()
@@ -744,3 +748,30 @@ class Overview(tkinter.Frame):
             self.main_image.connect_igtl_client()
 
 
+
+    def CheckCB(self):
+        if self.Show_Origin_CB_Var.get() == 1:
+            self.main_image.show_origin_CB = True
+        else:
+            self.main_image.show_origin_CB = False
+
+        if self.Show_Needle_CB_Line_Var.get() == 1:
+            self.main_image.show_needle_line_CB = True
+        else:
+            self.main_image.show_needle_line_CB = False
+
+        if self.Show_Projected_Line_CB_Var.get() == 1:
+            self.main_image.show_projected_needle_line_CB = True
+        else:
+            self.main_image.show_projected_needle_line_CB = False
+
+        if self.Show_US_Coord_CB_Var.get() == 1:
+            self.main_image.show_US_coordinate_CB = True
+
+        else:
+            self.main_image.show_US_coordinate_CB = False
+
+        if self.Show_Target_CB_Var.get() == 1:
+            self.main_image.show_target_CB = True
+        else:
+            self.main_image.show_target_CB = False

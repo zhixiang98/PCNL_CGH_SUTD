@@ -109,6 +109,13 @@ class US_IMAGE():
         self.stacked_images_selected = False
 
 
+        #-----CheckBoxes-----------
+        self.show_origin_CB = False
+        self.show_needle_line_CB = False
+        self.show_projected_needle_line_CB = False
+        self.show_US_coordinate_CB = False
+        self.show_target_CB = False
+
     def stackImages(self, scale, imgArray):
         """stackImages function allows for multiple image array to be displayed side by side. In a row x column square grid
          
@@ -221,6 +228,30 @@ class US_IMAGE():
         # placeholder image
         self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
         self.img = np.asarray(self.img)
+
+        if self.show_origin_CB == True:
+            cv2.circle(self.img, (self.Origin_Pixel_X, self.Origin_Pixel_Y), radius=5, color=(255, 0, 0),
+                       thickness=-1)
+            cv2.line(self.img, (0, self.Origin_Pixel_Y), (2000, self.Origin_Pixel_Y), (255, 255, 255), 3)
+
+        if self.show_needle_line_CB == True:
+            cv2.line(self.img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y),
+                     (self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y), (255, 255, 255), 3)
+
+        if self.show_projected_needle_line_CB:
+            cv2.line(self.img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
+                     (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (0, 255, 255), 3)
+
+        if self.show_target_CB == True:
+            cv2.circle(self.img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
+                       thickness=-1)
+        if self.show_US_coordinate_CB == True:
+            cv2.putText(self.img, '{}'.format((self.Origin_US_X, self.Origin_US_Y)), (100, 100),
+                        cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
+
+
+
+
         # self.show_live_image_stacked(self.img,self.img,self.img,self.img)
 
     def select_origin(self):
