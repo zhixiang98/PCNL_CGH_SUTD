@@ -49,6 +49,7 @@ class US_IMAGE():
         self.Needle_End_US_X, self.Needle_End_US_Y = 0, 0
         self.Surface_US_X, self.Surface_US_Y = 0, 0
 
+        self.X_US_coordinates, self.Y_US_coordinates = 0,0 #currently not in used. to be used for target/ mouse selection to show distance between point and origin
         #--- Important values---
         """
         Theta is the angle measured from the drawn needle line with the vertical axis
@@ -62,6 +63,10 @@ class US_IMAGE():
         self.x_distance = 0 #x_distance is from the fixed point of actuator to needle
         self.d_distance = 0 #d_distance is the horizontal distance from the probe to the needle
 
+        self.gradient = 0
+        self.intersect = 0
+
+        self.mm_per_pixel = 0 #mm per pixel provided by the US
 
         #---- igtl configuration ---------
         """
@@ -91,7 +96,7 @@ class US_IMAGE():
         self.select_origin_img = None #select origin image
         self.cache1img = None # image that is "cleared" to be used for the select_origin function
         self.cache2img = None # image that is "cleared" to be used for the draw_needle_line function
-
+        self.labelled_img = None #img that is finally displayed and pass to update canvas
 
         self.single_img = None
         self.stacked_img = None
@@ -115,6 +120,8 @@ class US_IMAGE():
         self.show_projected_needle_line_CB = False
         self.show_US_coordinate_CB = False
         self.show_target_CB = False
+
+
 
     def stackImages(self, scale, imgArray):
         """stackImages function allows for multiple image array to be displayed side by side. In a row x column square grid
@@ -202,7 +209,7 @@ class US_IMAGE():
         ----------
         none currently """
 
-        self.message = self.client.wait_for_message(device_name="USImage", timeout =5.0)
+        # self.message = self.client.wait_for_message(device_name="USImage", timeout =5.0)
 
         # #used for igtl settings with US from CreativeMed
         # self.img = self.message.image
@@ -210,11 +217,18 @@ class US_IMAGE():
         # self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
         # self.single_img = np.asarray(self.single_img)
 
-        pass
+        self.img = Image.open("GUI/sample_image01.png").convert("RGB")
+        self.img = np.asarray(self.img)
+
+
 
     def show_live_image(self,img1=None , img2=None, img3 =None, img4 =None):
-        """Display a single live image of the Ultra Sound screen. Updates self.img to be either self.single_img or self.stacked_img
         """
+        Parse self.receive_image_message() that updates self.img
+        Display a single live image of the Ultra Sound screen.
+        Display different images based on the different CB
+        """
+
         # #used for igtl settings with US from CreativeMed
         # self.receive_image_message()
         # if not self.stacked_images_selected:
@@ -223,30 +237,30 @@ class US_IMAGE():
         #     self.show_live_image_stacked(img1, img2, img3, img4)
         #     self.img = self.stacked_img
         #
-
+        self.receive_image_message()
 
         # placeholder image
-        self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
-        self.img = np.asarray(self.img)
+
+        self.labelled_img = copy.deepcopy(self.img)
 
         if self.show_origin_CB == True:
-            cv2.circle(self.img, (self.Origin_Pixel_X, self.Origin_Pixel_Y), radius=5, color=(255, 0, 0),
+            cv2.circle(self.labelled_img, (self.Origin_Pixel_X, self.Origin_Pixel_Y), radius=5, color=(255, 0, 0),
                        thickness=-1)
-            cv2.line(self.img, (0, self.Origin_Pixel_Y), (2000, self.Origin_Pixel_Y), (255, 255, 255), 3)
+            cv2.line(self.labelled_img, (0, self.Origin_Pixel_Y), (2000, self.Origin_Pixel_Y), (255, 255, 255), 3)
 
         if self.show_needle_line_CB == True:
-            cv2.line(self.img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y),
+            cv2.line(self.labelled_img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y),
                      (self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y), (255, 255, 255), 3)
 
         if self.show_projected_needle_line_CB:
-            cv2.line(self.img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
+            cv2.line(self.labelled_img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
                      (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (0, 255, 255), 3)
 
         if self.show_target_CB == True:
-            cv2.circle(self.img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
+            cv2.circle(self.labelled_img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
                        thickness=-1)
         if self.show_US_coordinate_CB == True:
-            cv2.putText(self.img, '{}'.format((self.Origin_US_X, self.Origin_US_Y)), (100, 100),
+            cv2.putText(self.labelled_img, '{}'.format((self.Origin_US_X, self.Origin_US_Y)), (100, 100),
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
 
 
@@ -359,7 +373,25 @@ class US_IMAGE():
             cv2.imshow("Draw Needle Line Window", self.cache2img)
 
 
+    def Convert_Pixel_to_US_Coord(self):
+        """Converts the pixel coordinates to the US coordinates in terms of mm.
+        Requires the self.mm_per_pixel to convert.
+        Gets the Coordinates of the surface (intersection of the extrapolated needle line and the horizontal line passing through origin)
+        updates the values of the US Coordinates
+        """
+        self.X_US_coordinates = (self.Target_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
+        self.Y_US_coordinates = (self.Target_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
 
+        self.gradient = (self.Needle_End_Pixel_Y-self.Needle_Start_Pixel_Y) / (self.Needle_End_Pixel_X-self.Needle_Start_Pixel_X)
+        self.intersect = self.Needle_End_Pixel_Y - (self.gradient*self.Needle_End_Pixel_X) #using y=mx+c, to get c
+
+        self.Surface_Pixel_X = (self.Origin_Pixel_Y-self.intersect) / self.gradient
+        self.Surface_Pixel_Y = self.Origin_Pixel_Y
+
+        self.Surface_US_X = (self.Surface_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
+        self.Surface_US_Y = (self.Surface_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
+
+    def Calculation_x_distance(self):
 
 
     def set_values(self, attributes, value):

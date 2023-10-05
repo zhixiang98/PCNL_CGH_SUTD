@@ -489,7 +489,7 @@ class Overview(tkinter.Frame):
 
         try:
             self.main_image.show_live_image()
-            self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.main_image.img))
+            self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.main_image.labelled_img))
             self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
         except Exception as error:
             print("No image can be displayed", error)
