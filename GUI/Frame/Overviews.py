@@ -7,7 +7,7 @@ import PIL.Image, PIL.ImageTk
 import threading
 from tkinter import ttk
 import US_Screen.US_Image
-import PCNL_CGH_SUTD.Needle_Driver.NeedleDriver_Controller as ND
+import Needle_Driver.NeedleDriver_Controller as ND
 
 class Overview(tkinter.Frame):
 
@@ -278,23 +278,23 @@ class Overview(tkinter.Frame):
         self.X_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.X_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="HOME",
-                                                   command=lambda: self.home_button("X"),
+                                                   command=lambda: self.needle_driver_home_button("X"),
                                                    padx=5, pady=5)
         self.X_HOME_TOGGLE_BUTTON.grid(row=0, column=2, sticky="nsew")
 
         self.X_RESET_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="RESET", padx=5, pady=5,
-                                                    command=lambda: self.reset_button("X"))
+                                                    command=lambda: self.needle_driver_reset_button("X"))
         self.X_RESET_TOGGLE_BUTTON.grid(row=0, column=3, sticky="nsew")
 
         self.X_NEEDLE_ENTRY_BOX = tkinter.Entry(self.NEEDLE_X_MOVE_FRAME, textvariable=self.X_NEEDLE_VAR, width=10)
         self.X_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.X_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.x_move_command(self.X_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("Z",self.X_NEEDLE_ENTRY_BOX.get()))
         self.X_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.X_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="STOP", padx=5, pady=5,
-                                                   command=lambda: self.stop_button("X"))
+                                                   command=lambda: self.needle_driver_stop_button("X"))
         self.X_NEEDLE_STOP_BUTTON.grid(row=0, column=6, sticky="nsew")
 
         self.X_Label_POSITION = tkinter.Label(self.NEEDLE_X_MOVE_FRAME, text="X Value: ")
@@ -315,22 +315,22 @@ class Overview(tkinter.Frame):
         self.Y_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.Y_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="HOME", padx=5, pady=5,
-                                                   command=lambda: self.home_button("Y"))
+                                                   command=lambda: self.needle_driver_home_button("Y"))
         self.Y_HOME_TOGGLE_BUTTON.grid(row=0, column=2, sticky="nsew")
 
         self.Y_RESET_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="RESET", padx=5, pady=5,
-                                                    command=lambda: self.reset_button("Y"))
+                                                    command=lambda: self.needle_driver_reset_button("Y"))
         self.Y_RESET_TOGGLE_BUTTON.grid(row=0, column=3, sticky="nsew")
 
         self.Y_NEEDLE_ENTRY_BOX = tkinter.Entry(self.NEEDLE_Y_MOVE_FRAME, textvariable=self.Y_NEEDLE_VAR, width=10)
         self.Y_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.Y_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.y_move_command(self.Y_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("Y",self.Y_NEEDLE_ENTRY_BOX.get()))
         self.Y_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.Y_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="STOP", padx=5, pady=5,
-                                                   command=lambda: self.stop_button("Y"))
+                                                   command=lambda: self.needle_driver_stop_button("Y"))
         self.Y_NEEDLE_STOP_BUTTON.grid(row=0, column=6, sticky="nsew")
 
         self.Y_POSITION = tkinter.Label(self.NEEDLE_Y_MOVE_FRAME, text="Y Value: ")
@@ -343,30 +343,30 @@ class Overview(tkinter.Frame):
         self.NEEDLE_Z_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_HEIGHT)
 
         self.Z_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="Z+",
-                                                   command=lambda: self.toggle_button("Z+"), padx=5, pady=5)
+                                                   command=lambda: self.needle_driver_toggle_button("Z+"), padx=5, pady=5)
         self.Z_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.Z_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="Z-",
-                                                    command=lambda: self.toggle_button("Z-"), padx=5, pady=5)
+                                                    command=lambda: self.needle_driver_toggle_button("Z-"), padx=5, pady=5)
         self.Z_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.Z_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="HOME", padx=5, pady=5,
-                                                   command=lambda: self.home_button("Z"))
+                                                   command=lambda: self.needle_driver_home_button("Z"))
         self.Z_HOME_TOGGLE_BUTTON.grid(row=0, column=2, sticky="nsew")
 
         self.Z_RESET_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="RESET", padx=5, pady=5,
-                                                    command=lambda: self.reset_button("Z"))
+                                                    command=lambda: self.needle_driver_reset_button("Z"))
         self.Z_RESET_TOGGLE_BUTTON.grid(row=0, column=3, sticky="nsew")
 
         self.Z_NEEDLE_ENTRY_BOX = tkinter.Entry(self.NEEDLE_Z_MOVE_FRAME, textvariable=self.Z_NEEDLE_VAR, width=10)
         self.Z_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.Z_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.z_move_command(self.Z_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("Z",self.Z_NEEDLE_ENTRY_BOX.get()))
         self.Z_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.Z_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="STOP", padx=5, pady=5,
-                                                   command=lambda: self.stop_button("Z"))
+                                                   command=lambda: self.needle_driver_stop_button("Z"))
         self.Z_NEEDLE_STOP_BUTTON.grid(row=0, column=6, sticky="nsew")
 
         self.Z_POSITION = tkinter.Label(self.NEEDLE_Z_MOVE_FRAME, text="Z Value: ")
@@ -696,37 +696,6 @@ class Overview(tkinter.Frame):
 
             print("NEXT COMMAND")
 
-    def send_needle_driver_toggle_command(self, axis, command):
-        if command == "START":
-            if axis == "X+":
-                command_wr = "WR MR05300 1\r"
-            elif axis == "X-":
-                command_wr = "WR MR05301 1\r"
-            elif axis == "Y+":
-                command_wr = "WR MR06300 1\r"
-                # print(command_wr)
-            elif axis == "Y-":
-                command_wr = "WR MR06301 1\r"
-            elif axis == "Z+":
-                command_wr = "WR MR04300 1\r"
-            elif axis == "Z-":
-                command_wr = "WR MR04301 1\r"
-        elif command == "STOP":
-            if axis == "X+":
-                command_wr = "WR MR05300 0\r"
-            elif axis == "X-":
-                command_wr = "WR MR05301 0\r"
-            elif axis == "Y+":
-                command_wr = "WR MR06300 0\r"
-                # print(command_wr)
-            elif axis == "Y-":
-                command_wr = "WR MR06301 0\r"
-            elif axis == "Z+":
-                command_wr = "WR MR04300 0\r"
-            elif axis == "Z-":
-                command_wr = "WR MR04301 0\r"
-        self.send_command(command_wr)
-
     def Select_Origin_Button_Function(self):
         try:
             self.main_image.select_origin()
@@ -780,64 +749,274 @@ class Overview(tkinter.Frame):
             self.main_image.show_target_CB = False
 
     def needle_driver_toggle_button(self, key):
+        """Function callback when button "X+,X-,Y+,Y-,Z=,Z-"is pressed. Configure buttons"""
+
         if key == "X+":
             if self.X_PLUS_TOGGLE_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("X+","START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
 
-                # self.send_needle_driver_toggle_command("X+", "START")
                 self.X_PLUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.X_PLUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
-                # self.send_needle_driver_toggle_command("X+", "STOP")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("X+","STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.X_PLUS_TOGGLE_BUTTON.config(relief="raised")
                 self.X_PLUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
         if key == "X-":
-            if self.X_PLUS_TOGGLE_BUTTON["relief"] == "raised":
-                self.send_needle_driver_toggle_command("X-", "START")
+            if self.X_MINUS_TOGGLE_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("X-","START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+
                 self.X_MINUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.X_MINUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
-                self.send_needle_driver_toggle_command("X-", "STOP")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("X-","STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.X_MINUS_TOGGLE_BUTTON.config(relief="raised")
                 self.X_MINUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
         if key == "Y+":
             if self.Y_PLUS_TOGGLE_BUTTON["relief"] == "raised":
-                self.send_needle_driver_toggle_command("Y+", "START")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("Y+","START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.Y_PLUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.Y_PLUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
-                self.send_needle_driver_toggle_command("Y+", "STOP")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("Y+", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.Y_PLUS_TOGGLE_BUTTON.config(relief="raised")
                 self.Y_PLUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
         if key == "Y-":
             if self.Y_MINUS_TOGGLE_BUTTON["relief"] == "raised":
-                self.send_needle_driver_toggle_command("Y-", "START")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("Y-","START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.Y_MINUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.Y_MINUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
-                self.send_needle_driver_toggle_command("Y-", "STOP")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("Y-","STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.Y_MINUS_TOGGLE_BUTTON.config(relief="raised")
                 self.Y_MINUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
         if key == "Z+":
             if self.Z_PLUS_TOGGLE_BUTTON["relief"] == "raised":
-                self.send_needle_driver_toggle_command("Z+", "START")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("Z+","START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.Z_PLUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.Z_PLUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
-                self.send_needle_driver_toggle_command("Z+", "STOP")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("Z+","STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.Z_PLUS_TOGGLE_BUTTON.config(relief="raised")
                 self.Z_PLUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
         if key == "Z-":
             if self.Z_MINUS_TOGGLE_BUTTON["relief"] == "raised":
-                self.send_needle_driver_toggle_command("Z-", "START")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("Z-","START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.Z_MINUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.Z_MINUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
-                self.send_needle_driver_toggle_command("Z-", "STOP")
+                try:
+                    self.Needle_Driver.send_needle_driver_toggle_command("Z-","STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
                 self.Z_MINUS_TOGGLE_BUTTON.config(relief="raised")
                 self.Z_MINUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
+    def needle_driver_home_button(self, axis):
+        if axis == "X":
+            if self.X_HOME_TOGGLE_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_home_command("X", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.X_HOME_TOGGLE_BUTTON.config(relief='sunken')
+                self.X_HOME_TOGGLE_BUTTON.config(bg='spring green')
+                #TODO: ADD RESPONSE FEEDBACK WHEN HOME, CHANGE RELIEF AND COLOR BACK TO RAISED AND OG
+
+            else:
+                try:
+                    self.Needle_Driver.send_needle_driver_home_command("X", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.X_HOME_TOGGLE_BUTTON.config(relief="raised")
+                self.X_HOME_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
+        if axis == "Y":
+            if self.Y_HOME_TOGGLE_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_home_command("Y", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Y_HOME_TOGGLE_BUTTON.config(relief='sunken')
+                self.Y_HOME_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                try:
+                    self.Needle_Driver.send_needle_driver_home_command("Y", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Y_HOME_TOGGLE_BUTTON.config(relief="raised")
+                self.Y_HOME_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
+        if axis == "Z":
+            if self.Z_HOME_TOGGLE_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_home_command("Z", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Z_HOME_TOGGLE_BUTTON.config(relief='sunken')
+                self.Z_HOME_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                try:
+                    self.Needle_Driver.send_needle_driver_home_command("Z", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Z_HOME_TOGGLE_BUTTON.config(relief="raised")
+                self.Z_HOME_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
+    def needle_driver_stop_button(self, axis):
+        if axis == "X":
+            if self.X_NEEDLE_STOP_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_stop_command("X", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.X_NEEDLE_STOP_BUTTON.config(relief='sunken')
+                self.X_NEEDLE_STOP_BUTTON.config(bg='spring green')
+            else:
+                try:
+                    self.Needle_Driver.send_needle_driver_stop_command("X", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.X_NEEDLE_STOP_BUTTON.config(relief="raised")
+                self.X_NEEDLE_STOP_BUTTON.config(bg='SystemButtonFace')
+
+        if axis == "Y":
+            if self.Y_NEEDLE_STOP_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_stop_command("Y", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Y_NEEDLE_STOP_BUTTON.config(relief='sunken')
+                self.Y_NEEDLE_STOP_BUTTON.config(bg='spring green')
+            else:
+                try:
+                    self.Needle_Driver.send_needle_driver_stop_command("Y", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Y_NEEDLE_STOP_BUTTON.config(relief="raised")
+                self.Y_NEEDLE_STOP_BUTTON.config(bg='SystemButtonFace')
+
+        if axis == "Z":
+            if self.Z_NEEDLE_STOP_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_stop_command("Z", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Z_NEEDLE_STOP_BUTTON.config(relief='sunken')
+                self.Z_NEEDLE_STOP_BUTTON.config(bg='spring green')
+            else:
+                try:
+                    self.Needle_Driver.send_needle_driver_stop_command("Z", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Z_NEEDLE_STOP_BUTTON.config(relief="raised")
+                self.Z_NEEDLE_STOP_BUTTON.config(bg='SystemButtonFace')
+
+
+    def needle_driver_reset_button(self, axis):
+        if axis == "X":
+            if self.X_RESET_TOGGLE_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.needle_driver_reset.command("X", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.X_RESET_TOGGLE_BUTTON.config(relief='sunken')
+                self.X_RESET_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                try:
+                    self.Needle_Driver.needle_driver_reset.command("X", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.X_RESET_TOGGLE_BUTTON.config(relief="raised")
+                self.X_RESET_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
+        if axis == "Y":
+            if self.Y_RESET_TOGGLE_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_reset_command("Y", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Y_RESET_TOGGLE_BUTTON.config(relief='sunken')
+                self.Y_RESET_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                try:
+                    self.Needle_Driver.send_needle_driver_reset_command("Y", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Y_RESET_TOGGLE_BUTTON.config(relief="raised")
+                self.Y_RESET_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
+        if axis == "Z":
+            if self.Z_RESET_TOGGLE_BUTTON["relief"] == "raised":
+                try:
+                    self.Needle_Driver.send_needle_driver_reset_command("Z", "START")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Z_RESET_TOGGLE_BUTTON.config(relief='sunken')
+                self.Z_RESET_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                try:
+                    self.Needle_Driver.send_needle_driver_reset_command("Z", "STOP")
+                except AttributeError as e:
+                    print("ERROR: " + str(e))
+                self.Z_RESET_TOGGLE_BUTTON.config(relief="raised")
+                self.Z_RESET_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+    def needle_driver_move_button(self, axis, value):
+        if axis == "X":
+            try:
+                self.Needle_Driver.x_move_command(value)
+            except AttributeError as e:
+                print("ERROR: " + str(e))
+        if axis == "Y":
+            try:
+                self.Needle_Driver.y_move_command(value)
+            except AttributeError as e:
+                print("ERROR: " + str(e))
+        if axis == "Z":
+            try:
+                self.Needle_Driver.z_move_command(value)
+            except AttributeError as e:
+                print("ERROR: "+ str(e))
+
 
 
     def connect_needle_driver(self):
         try:
             self.Needle_Driver = ND.NeedleDriverController()
+        except:
+            print("error not connected")
+
 

@@ -5,6 +5,9 @@ import re
 
 class NeedleDriverController():
     def __init__(self):
+        """Initialise with the following parameters. Change here if necessary
+
+        """
         #-------- Values for needle driver connection settings"
         self.port = "COM3"
         self.baudrate = 9600
@@ -14,7 +17,8 @@ class NeedleDriverController():
         self.timeout = 0.1  # Specify the timeout value in seconds
 
         #-------Float values of X, Y, Z readings
-        """Float values of x, y, z values initialised to 0.00"""
+        """Float values of current position of x, y, z values initialised to 0.00
+        """
         self.X_ND_Values = 0.0
         self.Y_ND_Values = 0.0
         self.Z_ND_Values = 0.0
@@ -31,6 +35,7 @@ class NeedleDriverController():
 
 
     def read_values(self):
+        """To be called in Overview update method"""
         threading.Thread(target=self.read_x_value).start()
         threading.Thread(target=self.read_y_value).start()
         threading.Thread(target=self.read_z_value).start()
@@ -111,6 +116,23 @@ class NeedleDriverController():
         command_move = "WR MR04200 1\r"
         self.send_command(command_move)
 
+    def send_needle_driver_reset_command(self, axis, command):
+        if command == "START":
+            if axis == "X":
+                command_wr = "WR MR05000 1\r"
+            elif axis == "Y":
+                command_wr = "WR MR06000 1\r"
+            elif axis == "Z":
+                command_wr = "WR MR04000 1\r"
+        elif command == "STOP":
+            if axis == "X":
+                command_wr = "WR MR05000 0\r"
+            elif axis == "Y":
+                command_wr = "WR MR06000 0\r"
+            elif axis == "Z":
+                command_wr = "WR MR04000 0\r"
+        self.send_command(command_wr)
+
     def send_needle_driver_stop_command(self, axis, command):
         if command == "START":
             if axis == "X":
@@ -128,3 +150,84 @@ class NeedleDriverController():
                 command_wr = "WR MR04302 0\r"
         self.send_command(command_wr)
 
+    def send_needle_driver_home_command(self, axis, command):
+        if command == "START":
+            if axis == "X":
+                command_wr_stop = "WR MR05100 1\r"
+            elif axis == "Y":
+                command_wr_stop = "WR MR06100 1\r"
+            elif axis == "Z":
+                command_wr_stop = "WR MR04100 1\r"
+        elif command == "STOP":
+            if axis == "X":
+                command_wr_stop = "WR MR05100 0\r"
+            elif axis == "Y":
+                command_wr_stop = "WR MR06100 0\r"
+            elif axis == "Z":
+                command_wr_stop = "WR MR04100 0\r"
+        self.send_command(command_wr_stop)
+
+    def send_needle_driver_toggle_command(self, axis, command):
+        if command == "START":
+            if axis == "X+":
+                command_wr = "WR MR05300 1\r"
+            elif axis == "X-":
+                command_wr = "WR MR05301 1\r"
+            elif axis == "Y+":
+                command_wr = "WR MR06300 1\r"
+                # print(command_wr)
+            elif axis == "Y-":
+                command_wr = "WR MR06301 1\r"
+            elif axis == "Z+":
+                command_wr = "WR MR04300 1\r"
+            elif axis == "Z-":
+                command_wr = "WR MR04301 1\r"
+        elif command == "STOP":
+            if axis == "X+":
+                command_wr = "WR MR05300 0\r"
+            elif axis == "X-":
+                command_wr = "WR MR05301 0\r"
+            elif axis == "Y+":
+                command_wr = "WR MR06300 0\r"
+                # print(command_wr)
+            elif axis == "Y-":
+                command_wr = "WR MR06301 0\r"
+            elif axis == "Z+":
+                command_wr = "WR MR04300 0\r"
+            elif axis == "Z-":
+                command_wr = "WR MR04301 0\r"
+        self.send_command(command_wr)
+
+    def send_needle_driver_home_command(self, axis, command):
+        if command == "START":
+            if axis == "X":
+                command_wr_stop = "WR MR05100 1\r"
+            elif axis == "Y":
+                command_wr_stop = "WR MR06100 1\r"
+            elif axis == "Z":
+                command_wr_stop = "WR MR04100 1\r"
+        elif command == "STOP":
+            if axis == "X":
+                command_wr_stop = "WR MR05100 0\r"
+            elif axis == "Y":
+                command_wr_stop = "WR MR06100 0\r"
+            elif axis == "Z":
+                command_wr_stop = "WR MR04100 0\r"
+        self.send_command(command_wr_stop)
+
+    def send_needle_driver_reset_command(self,axis,command):
+        if command == "START":
+            if axis == "X":
+                command_wr = "WR MR05000 1\r"
+            elif axis == "Y":
+                command_wr = "WR MR06000 1\r"
+            elif axis == "Z":
+                command_wr = "WR MR04000 1\r"
+        elif command == "STOP":
+            if axis == "X":
+                command_wr = "WR MR05000 0\r"
+            elif axis == "Y":
+                command_wr = "WR MR06000 0\r"
+            elif axis == "Z":
+                command_wr = "WR MR04000 0\r"
+        self.send_command(command_wr)
