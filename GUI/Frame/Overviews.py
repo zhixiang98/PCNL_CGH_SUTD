@@ -7,7 +7,7 @@ import PIL.Image, PIL.ImageTk
 import threading
 from tkinter import ttk
 import US_Screen.US_Image
-
+import PCNL_CGH_SUTD.Needle_Driver.NeedleDriver_Controller as ND
 
 class Overview(tkinter.Frame):
 
@@ -270,11 +270,11 @@ class Overview(tkinter.Frame):
         self.NEEDLE_X_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_HEIGHT)
 
         self.X_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="X+",
-                                                   command=lambda: self.toggle_button("X+"), padx=5, pady=5)
+                                                   command=lambda: self.needle_driver_toggle_button("X+"), padx=5, pady=5)
         self.X_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.X_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="X-",
-                                                    command=lambda: self.toggle_button("X-"), padx=5, pady=5)
+                                                    command=lambda: self.needle_driver_toggle_button("X-"), padx=5, pady=5)
         self.X_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.X_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="HOME",
@@ -307,11 +307,11 @@ class Overview(tkinter.Frame):
         self.NEEDLE_Y_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_HEIGHT)
 
         self.Y_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="Y+",
-                                                   command=lambda: self.toggle_button("Y+"), padx=5, pady=5)
+                                                   command=lambda: self.needle_driver_toggle_button("Y+"), padx=5, pady=5)
         self.Y_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.Y_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="Y-",
-                                                    command=lambda: self.toggle_button("Y-"), padx=5, pady=5)
+                                                    command=lambda: self.needle_driver_toggle_button("Y-"), padx=5, pady=5)
         self.Y_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.Y_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="HOME", padx=5, pady=5,
@@ -375,6 +375,8 @@ class Overview(tkinter.Frame):
         self.CONNECT_NEEDLE_DRIVER_BUTTON = tkinter.Button(self.NEEDLE_DRIVER_FRAME, text="Connect",
                                                            command=lambda: self.connect_needle_driver())
         self.CONNECT_NEEDLE_DRIVER_BUTTON.place(x=10, y=205, width=100)
+
+        self.Needle_Driver = None
 
 
         #TODO: ADD A scrolled label with logging function?
@@ -750,6 +752,7 @@ class Overview(tkinter.Frame):
 
 
     def CheckCB(self):
+        """Function to check tkinter_CB elements updates main_image attributes after checked"""
         if self.Show_Origin_CB_Var.get() == 1:
             self.main_image.show_origin_CB = True
         else:
@@ -775,3 +778,66 @@ class Overview(tkinter.Frame):
             self.main_image.show_target_CB = True
         else:
             self.main_image.show_target_CB = False
+
+    def needle_driver_toggle_button(self, key):
+        if key == "X+":
+            if self.X_PLUS_TOGGLE_BUTTON["relief"] == "raised":
+
+                # self.send_needle_driver_toggle_command("X+", "START")
+                self.X_PLUS_TOGGLE_BUTTON.config(relief='sunken')
+                self.X_PLUS_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                # self.send_needle_driver_toggle_command("X+", "STOP")
+                self.X_PLUS_TOGGLE_BUTTON.config(relief="raised")
+                self.X_PLUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+        if key == "X-":
+            if self.X_PLUS_TOGGLE_BUTTON["relief"] == "raised":
+                self.send_needle_driver_toggle_command("X-", "START")
+                self.X_MINUS_TOGGLE_BUTTON.config(relief='sunken')
+                self.X_MINUS_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                self.send_needle_driver_toggle_command("X-", "STOP")
+                self.X_MINUS_TOGGLE_BUTTON.config(relief="raised")
+                self.X_MINUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+        if key == "Y+":
+            if self.Y_PLUS_TOGGLE_BUTTON["relief"] == "raised":
+                self.send_needle_driver_toggle_command("Y+", "START")
+                self.Y_PLUS_TOGGLE_BUTTON.config(relief='sunken')
+                self.Y_PLUS_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                self.send_needle_driver_toggle_command("Y+", "STOP")
+                self.Y_PLUS_TOGGLE_BUTTON.config(relief="raised")
+                self.Y_PLUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+        if key == "Y-":
+            if self.Y_MINUS_TOGGLE_BUTTON["relief"] == "raised":
+                self.send_needle_driver_toggle_command("Y-", "START")
+                self.Y_MINUS_TOGGLE_BUTTON.config(relief='sunken')
+                self.Y_MINUS_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                self.send_needle_driver_toggle_command("Y-", "STOP")
+                self.Y_MINUS_TOGGLE_BUTTON.config(relief="raised")
+                self.Y_MINUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+        if key == "Z+":
+            if self.Z_PLUS_TOGGLE_BUTTON["relief"] == "raised":
+                self.send_needle_driver_toggle_command("Z+", "START")
+                self.Z_PLUS_TOGGLE_BUTTON.config(relief='sunken')
+                self.Z_PLUS_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                self.send_needle_driver_toggle_command("Z+", "STOP")
+                self.Z_PLUS_TOGGLE_BUTTON.config(relief="raised")
+                self.Z_PLUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+        if key == "Z-":
+            if self.Z_MINUS_TOGGLE_BUTTON["relief"] == "raised":
+                self.send_needle_driver_toggle_command("Z-", "START")
+                self.Z_MINUS_TOGGLE_BUTTON.config(relief='sunken')
+                self.Z_MINUS_TOGGLE_BUTTON.config(bg='spring green')
+            else:
+                self.send_needle_driver_toggle_command("Z-", "STOP")
+                self.Z_MINUS_TOGGLE_BUTTON.config(relief="raised")
+                self.Z_MINUS_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
+
+    def connect_needle_driver(self):
+        try:
+            self.Needle_Driver = ND.NeedleDriverController()
+

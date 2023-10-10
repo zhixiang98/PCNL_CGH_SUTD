@@ -217,7 +217,7 @@ class US_IMAGE():
         # self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
         # self.single_img = np.asarray(self.single_img)
 
-        self.img = Image.open("GUI/sample_image01.png").convert("RGB")
+        self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
         self.img = np.asarray(self.img)
 
 
@@ -391,7 +391,7 @@ class US_IMAGE():
         self.Surface_US_X = (self.Surface_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
         self.Surface_US_Y = (self.Surface_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
 
-    def Calculation_x_distance(self):
+    # def Calculation_x_distance(self):
 
 
     def set_values(self, attributes, value):
