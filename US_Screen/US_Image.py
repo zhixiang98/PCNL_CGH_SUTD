@@ -217,9 +217,9 @@ class US_IMAGE():
         # self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
         # self.single_img = np.asarray(self.single_img)
 
-        self.img = Image.open("GUI/sample_image01.png").convert("RGB")
+        # self.img = Image.open("GUI/sample_image01.png").convert("RGB")
 
-        # self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
+        self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
         self.img = np.asarray(self.img)
 
 
