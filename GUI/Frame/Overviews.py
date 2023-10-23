@@ -9,6 +9,7 @@ from tkinter import ttk
 import US_Screen.US_Image
 import Needle_Driver.NeedleDriver_Controller as ND
 
+
 class Overview(tkinter.Frame):
 
     def __init__(self, parent, cont):
@@ -22,11 +23,12 @@ class Overview(tkinter.Frame):
         self.cont = cont
         self.delay = c.REFRESH_DELAY
 
-
         # --- Tkinter Variables ---
         # """Tkinter Variables will be in CAPs"""
+        self.MILIMTR_PER_PIXEL = tkinter.DoubleVar()
+
         self.X_US_COORDINATES, self.Y_US_COORDINATES = tkinter.DoubleVar(), tkinter.DoubleVar()
-        self.THETA = tkinter.DoubleVar()
+        self.ALPHA = tkinter.DoubleVar()
 
         self.X_US_SURFACE_TARGET_COORDINATES, self.Y_US_SURFACE_TARGET_COORDINATES = tkinter.DoubleVar(), tkinter.DoubleVar()
 
@@ -54,21 +56,23 @@ class Overview(tkinter.Frame):
 
         # -- Image_Setting_Label_Frame---
         self.Select_Origin_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.ORIGIN_BUTTON_TEXT,
-                                                   width=c.BUTTON_WIDTH, command=lambda: self.Select_Origin_Button_Function())
+                                                   width=c.BUTTON_WIDTH,
+                                                   command=lambda: self.Select_Origin_Button_Function())
         self.Select_Origin_Button.grid(row=c.ORIGIN_BUTTON_ROW, column=c.ORIGIN_BUTTON_COLUMN, padx=c.PADX, pady=c.PADY)
 
-        # self.Select_Target_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.SELECT_TARGET_BUTTON_TEXT,
-        #                                            width=c.BUTTON_WIDTH, command=lambda: self.Select_Target())
-        # self.Select_Target_Button.grid(row=c.SELECT_TARGET_BUTTON_ROW, column=c.SELECT_TARGET_BUTTON_COLUMN,
-        #                                padx=c.PADX, pady=c.PADY)
+        self.Select_Target_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.SELECT_TARGET_BUTTON_TEXT,
+                                                   width=c.BUTTON_WIDTH, command=lambda: self.Select_Target())
+        self.Select_Target_Button.grid(row=c.SELECT_TARGET_BUTTON_ROW, column=c.SELECT_TARGET_BUTTON_COLUMN,
+                                       padx=c.PADX, pady=c.PADY)
 
-        self.Theta_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.THETA_BUTTON_TEXT,
+        self.Alpha_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.ALPHA_BUTTON_TEXT,
                                            command=lambda: self.calculate_target_ange(), width=c.BUTTON_WIDTH)
-        self.Theta_Button.grid(row=c.THETA_BUTTON_ROW, column=c.THETA_BUTTON_COLUMN, padx=c.PADX,
+        self.Alpha_Button.grid(row=c.ALPHA_BUTTON_ROW, column=c.ALPHA_BUTTON_COLUMN, padx=c.PADX,
                                pady=c.PADY)
 
         self.Draw_Needle_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.DRAW_NEEDLE_BUTTON_TEXT,
-                                                 command=lambda: self.Draw_Needle_Button_Function(), width=c.BUTTON_WIDTH)
+                                                 command=lambda: self.Draw_Needle_Button_Function(),
+                                                 width=c.BUTTON_WIDTH)
         self.Draw_Needle_Button.grid(row=c.DRAW_NEEDLE_BUTTON_ROW, column=c.DRAW_NEEDLE_BUTTON_COLUMN, padx=c.PADX,
                                      pady=c.PADY)
 
@@ -79,11 +83,9 @@ class Overview(tkinter.Frame):
         self.Convert_Pixel2Coordinates_Button.grid(row=c.CONVERT_PIXEL2COORDINATES_ROW,
                                                    column=c.CONVERT_PIXEL2COORDINATES_COLUMN, padx=c.PADX, pady=c.PADY)
 
-        self.Depth_Combo_Box = ttk.Combobox(self.Image_Setting_Label_Frame,
-                                            values=[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
-                                                    23,
-                                                    24])
-        self.Depth_Combo_Box.grid(row=c.DEPTH_COMBO_BOX_ROW, column=c.DEPTH_COMBO_BOX_COLUMN, padx=c.PADX, pady=c.PADY)
+        self.Milimeter_Per_Pixel_Entry = tkinter.Entry(self.Image_Setting_Label_Frame,
+                                            textvariable=str(self.MILIMTR_PER_PIXEL))
+        self.Milimeter_Per_Pixel_Entry.grid(row=c.DEPTH_COMBO_BOX_ROW, column=c.DEPTH_COMBO_BOX_COLUMN, padx=c.PADX, pady=c.PADY)
 
         self.Connect_IGTL_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.RECONNECT_IMAGE_TEXT,
                                                   command=lambda: self.connection_igtl_client(), width=c.BUTTON_WIDTH)
@@ -100,7 +102,8 @@ class Overview(tkinter.Frame):
         self.show_projected_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_projected_line",
                                                           variable=self.Show_Projected_Line_CB_Var, onvalue=1,
                                                           offvalue=0)
-        self.show_projected_line_CB.grid(row=c.SHOW_PROJECTED_LINE_CB_ROW, column=c.SHOW_PROJECTED_LINE_CB_COLUMN, padx=20, columnspan=2, sticky="w")
+        self.show_projected_line_CB.grid(row=c.SHOW_PROJECTED_LINE_CB_ROW, column=c.SHOW_PROJECTED_LINE_CB_COLUMN,
+                                         padx=20, columnspan=2, sticky="w")
 
         self.show_origin_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_origin",
                                                   variable=self.Show_Origin_CB_Var, onvalue=1,
@@ -134,8 +137,8 @@ class Overview(tkinter.Frame):
         tkinter.Label(self.US_INFO_LABEL_FRAME, text="Y US Coordinates: ").grid(row=3, column=1)
         tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.Y_US_COORDINATES).grid(row=4, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Theta: ").grid(row=5, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.THETA).grid(row=6, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="ALPHA: ").grid(row=5, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.ALPHA).grid(row=6, column=1)
 
         tkinter.Label(self.US_INFO_LABEL_FRAME, text="X Surface Coordinates: ").grid(row=7, column=1)
         tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_SURFACE_TARGET_COORDINATES).grid(row=8, column=1)
@@ -267,14 +270,18 @@ class Overview(tkinter.Frame):
                                        height=c.NEEDLE_DRIVER_FRAME_HEIGHT, width=c.NEEDLE_DRIVER_FRAME_WIDTH)
 
         self.NEEDLE_X_MOVE_FRAME = tkinter.LabelFrame(self.NEEDLE_DRIVER_FRAME, text="X_Axis")
-        self.NEEDLE_X_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_HEIGHT)
+        self.NEEDLE_X_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_Y,
+                                       width=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_WIDTH,
+                                       height=c.NEEDLE_DRIVER_X_DIR_MOVE_FRAME_HEIGHT)
 
         self.X_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="X+",
-                                                   command=lambda: self.needle_driver_toggle_button("X+"), padx=5, pady=5)
+                                                   command=lambda: self.needle_driver_toggle_button("X+"), padx=5,
+                                                   pady=5)
         self.X_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.X_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="X-",
-                                                    command=lambda: self.needle_driver_toggle_button("X-"), padx=5, pady=5)
+                                                    command=lambda: self.needle_driver_toggle_button("X-"), padx=5,
+                                                    pady=5)
         self.X_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.X_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="HOME",
@@ -290,7 +297,8 @@ class Overview(tkinter.Frame):
         self.X_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.X_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.needle_driver_move_button("Z",self.X_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("Z",
+                                                                                                  self.X_NEEDLE_ENTRY_BOX.get()))
         self.X_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.X_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="STOP", padx=5, pady=5,
@@ -304,14 +312,18 @@ class Overview(tkinter.Frame):
         self.Y_NEEDLE_VAR = tkinter.StringVar()
         # --Y_AYis_Element
         self.NEEDLE_Y_MOVE_FRAME = tkinter.LabelFrame(self.NEEDLE_DRIVER_FRAME, text="Y_Axis")
-        self.NEEDLE_Y_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_HEIGHT)
+        self.NEEDLE_Y_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_Y,
+                                       width=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_WIDTH,
+                                       height=c.NEEDLE_DRIVER_Y_DIR_MOVE_FRAME_HEIGHT)
 
         self.Y_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="Y+",
-                                                   command=lambda: self.needle_driver_toggle_button("Y+"), padx=5, pady=5)
+                                                   command=lambda: self.needle_driver_toggle_button("Y+"), padx=5,
+                                                   pady=5)
         self.Y_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.Y_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="Y-",
-                                                    command=lambda: self.needle_driver_toggle_button("Y-"), padx=5, pady=5)
+                                                    command=lambda: self.needle_driver_toggle_button("Y-"), padx=5,
+                                                    pady=5)
         self.Y_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.Y_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="HOME", padx=5, pady=5,
@@ -326,7 +338,8 @@ class Overview(tkinter.Frame):
         self.Y_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.Y_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.needle_driver_move_button("Y",self.Y_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("Y",
+                                                                                                  self.Y_NEEDLE_ENTRY_BOX.get()))
         self.Y_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.Y_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="STOP", padx=5, pady=5,
@@ -340,14 +353,18 @@ class Overview(tkinter.Frame):
         self.Z_NEEDLE_VAR = tkinter.StringVar()
         # --Z_Axis_Element
         self.NEEDLE_Z_MOVE_FRAME = tkinter.LabelFrame(self.NEEDLE_DRIVER_FRAME, text="Z_Axis")
-        self.NEEDLE_Z_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_Y, width=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_WIDTH, height=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_HEIGHT)
+        self.NEEDLE_Z_MOVE_FRAME.place(x=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_X, y=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_Y,
+                                       width=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_WIDTH,
+                                       height=c.NEEDLE_DRIVER_Z_DIR_MOVE_FRAME_HEIGHT)
 
         self.Z_PLUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="Z+",
-                                                   command=lambda: self.needle_driver_toggle_button("Z+"), padx=5, pady=5)
+                                                   command=lambda: self.needle_driver_toggle_button("Z+"), padx=5,
+                                                   pady=5)
         self.Z_PLUS_TOGGLE_BUTTON.grid(row=0, column=0, sticky="nsew")
 
         self.Z_MINUS_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="Z-",
-                                                    command=lambda: self.needle_driver_toggle_button("Z-"), padx=5, pady=5)
+                                                    command=lambda: self.needle_driver_toggle_button("Z-"), padx=5,
+                                                    pady=5)
         self.Z_MINUS_TOGGLE_BUTTON.grid(row=0, column=1, sticky="nsew")
 
         self.Z_HOME_TOGGLE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="HOME", padx=5, pady=5,
@@ -362,7 +379,8 @@ class Overview(tkinter.Frame):
         self.Z_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.Z_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.needle_driver_move_button("Z",self.Z_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("Z",
+                                                                                                  self.Z_NEEDLE_ENTRY_BOX.get()))
         self.Z_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.Z_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="STOP", padx=5, pady=5,
@@ -378,9 +396,7 @@ class Overview(tkinter.Frame):
 
         self.Needle_Driver = None
 
-
-        #TODO: ADD A scrolled label with logging function?
-
+        # TODO: ADD A scrolled label with logging function?
 
         # -------Tkinter Treeview Elements-------
         self.treeviewframe = tkinter.LabelFrame(self, text="Treeview")
@@ -461,6 +477,17 @@ class Overview(tkinter.Frame):
         # ---------End of treeview  elements -------
 
         self.update_canvas()
+        self.update_info_frame_label()
+
+    def update_info_frame_label(self):
+        try:
+            self.ALPHA.set(self.main_image.Alpha)
+        except Exception as error:
+            print("No image data can be displayed", error)
+
+
+        self.after(self.delay, self.update_info_frame_label)
+
 
     def update_canvas(self):
         start_time = time.time()
@@ -699,13 +726,20 @@ class Overview(tkinter.Frame):
     def Select_Origin_Button_Function(self):
         try:
             self.main_image.select_origin()
-        except :
+        except:
             print("ERROR")
             pass
 
     def Draw_Needle_Button_Function(self):
         try:
             self.main_image.draw_needle_line()
+        except:
+            print("ERROR")
+            pass
+
+    def Select_Target(self):
+        try:
+            self.main_image.select_target()
         except:
             print("ERROR")
             pass
@@ -717,8 +751,6 @@ class Overview(tkinter.Frame):
         else:
 
             self.main_image.connect_igtl_client()
-
-
 
     def CheckCB(self):
         """Function to check tkinter_CB elements updates main_image attributes after checked"""
@@ -749,12 +781,12 @@ class Overview(tkinter.Frame):
             self.main_image.show_target_CB = False
 
     def needle_driver_toggle_button(self, key):
-        """Function callback when button "X+,X-,Y+,Y-,Z=,Z-"is pressed. Configure buttons"""
+        """Function callback when button "X+,X-,Y+,Y-,Z+,Z-"is pressed. Configure buttons"""
 
         if key == "X+":
             if self.X_PLUS_TOGGLE_BUTTON["relief"] == "raised":
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("X+","START")
+                    self.Needle_Driver.send_needle_driver_toggle_command("X+", "START")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
 
@@ -762,7 +794,7 @@ class Overview(tkinter.Frame):
                 self.X_PLUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("X+","STOP")
+                    self.Needle_Driver.send_needle_driver_toggle_command("X+", "STOP")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.X_PLUS_TOGGLE_BUTTON.config(relief="raised")
@@ -770,7 +802,7 @@ class Overview(tkinter.Frame):
         if key == "X-":
             if self.X_MINUS_TOGGLE_BUTTON["relief"] == "raised":
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("X-","START")
+                    self.Needle_Driver.send_needle_driver_toggle_command("X-", "START")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
 
@@ -778,7 +810,7 @@ class Overview(tkinter.Frame):
                 self.X_MINUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("X-","STOP")
+                    self.Needle_Driver.send_needle_driver_toggle_command("X-", "STOP")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.X_MINUS_TOGGLE_BUTTON.config(relief="raised")
@@ -787,7 +819,7 @@ class Overview(tkinter.Frame):
         if key == "Y+":
             if self.Y_PLUS_TOGGLE_BUTTON["relief"] == "raised":
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("Y+","START")
+                    self.Needle_Driver.send_needle_driver_toggle_command("Y+", "START")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.Y_PLUS_TOGGLE_BUTTON.config(relief='sunken')
@@ -802,14 +834,14 @@ class Overview(tkinter.Frame):
         if key == "Y-":
             if self.Y_MINUS_TOGGLE_BUTTON["relief"] == "raised":
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("Y-","START")
+                    self.Needle_Driver.send_needle_driver_toggle_command("Y-", "START")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.Y_MINUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.Y_MINUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("Y-","STOP")
+                    self.Needle_Driver.send_needle_driver_toggle_command("Y-", "STOP")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.Y_MINUS_TOGGLE_BUTTON.config(relief="raised")
@@ -817,14 +849,14 @@ class Overview(tkinter.Frame):
         if key == "Z+":
             if self.Z_PLUS_TOGGLE_BUTTON["relief"] == "raised":
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("Z+","START")
+                    self.Needle_Driver.send_needle_driver_toggle_command("Z+", "START")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.Z_PLUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.Z_PLUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("Z+","STOP")
+                    self.Needle_Driver.send_needle_driver_toggle_command("Z+", "STOP")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.Z_PLUS_TOGGLE_BUTTON.config(relief="raised")
@@ -832,14 +864,14 @@ class Overview(tkinter.Frame):
         if key == "Z-":
             if self.Z_MINUS_TOGGLE_BUTTON["relief"] == "raised":
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("Z-","START")
+                    self.Needle_Driver.send_needle_driver_toggle_command("Z-", "START")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.Z_MINUS_TOGGLE_BUTTON.config(relief='sunken')
                 self.Z_MINUS_TOGGLE_BUTTON.config(bg='spring green')
             else:
                 try:
-                    self.Needle_Driver.send_needle_driver_toggle_command("Z-","STOP")
+                    self.Needle_Driver.send_needle_driver_toggle_command("Z-", "STOP")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.Z_MINUS_TOGGLE_BUTTON.config(relief="raised")
@@ -854,7 +886,7 @@ class Overview(tkinter.Frame):
                     print("ERROR: " + str(e))
                 self.X_HOME_TOGGLE_BUTTON.config(relief='sunken')
                 self.X_HOME_TOGGLE_BUTTON.config(bg='spring green')
-                #TODO: ADD RESPONSE FEEDBACK WHEN HOME, CHANGE RELIEF AND COLOR BACK TO RAISED AND OG
+                # TODO: ADD RESPONSE FEEDBACK WHEN HOME, CHANGE RELIEF AND COLOR BACK TO RAISED AND OG
 
             else:
                 try:
@@ -945,7 +977,6 @@ class Overview(tkinter.Frame):
                 self.Z_NEEDLE_STOP_BUTTON.config(relief="raised")
                 self.Z_NEEDLE_STOP_BUTTON.config(bg='SystemButtonFace')
 
-
     def needle_driver_reset_button(self, axis):
         if axis == "X":
             if self.X_RESET_TOGGLE_BUTTON["relief"] == "raised":
@@ -994,6 +1025,7 @@ class Overview(tkinter.Frame):
                     print("ERROR: " + str(e))
                 self.Z_RESET_TOGGLE_BUTTON.config(relief="raised")
                 self.Z_RESET_TOGGLE_BUTTON.config(bg='SystemButtonFace')
+
     def needle_driver_move_button(self, axis, value):
         if axis == "X":
             try:
@@ -1009,14 +1041,18 @@ class Overview(tkinter.Frame):
             try:
                 self.Needle_Driver.z_move_command(value)
             except AttributeError as e:
-                print("ERROR: "+ str(e))
-
-
+                print("ERROR: " + str(e))
 
     def connect_needle_driver(self):
         try:
             self.Needle_Driver = ND.NeedleDriverController()
         except:
             print("error not connected")
+
+    def convert_pixel_to_US_coord(self):
+        try:
+            self.main_image.Convert_Pixel_to_US_Coord()
+        except AttributeError as e:
+            print("ERROR: " + str(e))
 
 

@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 import cv2
 import copy
+import math
 
 class US_IMAGE():
     def __init__(self):
@@ -62,6 +63,7 @@ class US_IMAGE():
         self.Alpha = 0
         self.x_distance = 0 #x_distance is from the fixed point of actuator to needle
         self.d_distance = 0 #d_distance is the horizontal distance from the probe to the needle
+        self.actuator_move_value = 0 #value to input to the needle driver
 
         self.gradient = 0
         self.intersect = 0
@@ -96,7 +98,9 @@ class US_IMAGE():
         self.select_origin_img = None #select origin image
         self.cache1img = None # image that is "cleared" to be used for the select_origin function
         self.cache2img = None # image that is "cleared" to be used for the draw_needle_line function
+        self.cache3img = None # image that is "cleared" to be used for the select_target function
         self.labelled_img = None #img that is finally displayed and pass to update canvas
+        self.select_target_img = None
 
         self.single_img = None
         self.stacked_img = None
@@ -110,7 +114,7 @@ class US_IMAGE():
 
         self.origin_selected = False
         self.draw_needle_line_selected = False
-
+        self.target_selected = False
         self.stacked_images_selected = False
 
 
@@ -262,7 +266,7 @@ class US_IMAGE():
             cv2.circle(self.labelled_img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
                        thickness=-1)
         if self.show_US_coordinate_CB == True:
-            cv2.putText(self.labelled_img, '{}'.format((self.Origin_US_X, self.Origin_US_Y)), (100, 100),
+            cv2.putText(self.labelled_img, '{}'.format((self.Target_Pixel_X, self.Target_Pixel_Y)), (100, 100),
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
 
 
@@ -320,6 +324,53 @@ class US_IMAGE():
             cv2.imshow("Select Origin Window", self.cache1img)
             self.origin_selected = True
 
+    def select_target(self):
+        """select_target calls when button is pressed. Opens up a window(Select Origin Window) copy of the current live single
+           image frame for user to mark the origin point on the picture.
+
+            Upon closing and reopening window, the previously marked points should
+           still be marked"""
+
+        if not self.target_selected:
+            self.select_target_img = self.img
+
+        else:
+            self.select_target_img = self.cache3img
+        cv2.imshow("Select Target Window", self.select_target_img)
+        cv2.setMouseCallback("Select Target Window", self.Mouse_Callback_Target)
+
+    def Mouse_Callback_Target(self, event, x, y, flags, param):
+        """Mouse callback event using CV2
+
+        Parameters
+        ----------
+        EVENT_LBUTTONDOWN: marks a point on the image, updates the Target_Pixel_X, Target_Pixel_Y values
+        with the image pixel value when clicked
+        EVENT_MBUTTONDOWN: clear markings on the image, returns a copy of the live image"
+        EVENT_RBUTTONDOWN: display the pixel coordinate values(X,Y)of the marked points
+        """
+        if (event == cv2.EVENT_LBUTTONDOWN):
+            self.cache3img = copy.deepcopy(self.img)
+
+            self.Target_Pixel_X, self.Target_Pixel_Y = x, y
+            cv2.circle(self.cache3img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
+                       thickness=-1)
+
+            cv2.imshow("Select Target Window", self.cache3img)
+            self.target_selected = True
+
+        elif (event == cv2.EVENT_MBUTTONDOWN):
+            self.cache3img = copy.deepcopy(self.img)
+
+            self.Target_Pixel_X, self.Target_Pixel_Y = 0, 0
+            self.target_selected = False
+            cv2.imshow("Select Target Window", self.cache3img)
+
+        elif (event == cv2.EVENT_RBUTTONDOWN):
+            cv2.putText(self.cache3img, '{}'.format((self.Target_Pixel_X, self.Target_Pixel_Y)), (100, 100),
+                        cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
+            cv2.imshow("Select Target Window", self.cache3img)
+            self.target_selected = True
 
     def draw_needle_line(self):
         """draw_needle_line calls when draw needle button is clicked
@@ -334,6 +385,16 @@ class US_IMAGE():
             self.draw_needle_line_img = self.cache2img
         cv2.imshow("Draw Needle Line Window", self.draw_needle_line_img)
         cv2.setMouseCallback("Draw Needle Line Window", self.Mouse_Callback_Needle_Line)
+
+    def calculate_target_angle(self):
+        try:
+            y_difference = -(self.Needle_End_Pixel_Y - self.Needle_Start_Pixel_Y)
+            x_difference = self.Needle_End_Pixel_X - self.Needle_Start_Pixel_X
+            self.Alpha = math.atan(x_difference / y_difference)
+            self.Alpha = self.Alpha / math.pi * 180
+        except ValueError:
+            print("ZERO DIVISION ERROR")
+            pass
 
     def Mouse_Callback_Needle_Line(self, event, x, y, flags, param):
         """Mouse callback event using CV2
@@ -371,6 +432,7 @@ class US_IMAGE():
             cv2.line(self.cache2img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y),
                      (self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y),
                      (255, 255, 255), 3)
+            self.calculate_target_angle()
             self.draw_needle_line_selected = True
             cv2.imshow("Draw Needle Line Window", self.cache2img)
 
@@ -381,19 +443,21 @@ class US_IMAGE():
         Gets the Coordinates of the surface (intersection of the extrapolated needle line and the horizontal line passing through origin)
         updates the values of the US Coordinates
         """
-        self.X_US_coordinates = (self.Target_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
-        self.Y_US_coordinates = (self.Target_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
+        try:
+            self.X_US_coordinates = (self.Target_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
+            self.Y_US_coordinates = (self.Target_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
 
-        self.gradient = (self.Needle_End_Pixel_Y-self.Needle_Start_Pixel_Y) / (self.Needle_End_Pixel_X-self.Needle_Start_Pixel_X)
-        self.intersect = self.Needle_End_Pixel_Y - (self.gradient*self.Needle_End_Pixel_X) #using y=mx+c, to get c
+            self.gradient = (self.Needle_End_Pixel_Y-self.Needle_Start_Pixel_Y) / (self.Needle_End_Pixel_X-self.Needle_Start_Pixel_X)
+            self.intersect = self.Needle_End_Pixel_Y - (self.gradient*self.Needle_End_Pixel_X) #using y=mx+c, to get c
 
-        self.Surface_Pixel_X = (self.Origin_Pixel_Y-self.intersect) / self.gradient
-        self.Surface_Pixel_Y = self.Origin_Pixel_Y
+            self.Surface_Pixel_X = (self.Origin_Pixel_Y-self.intersect) / self.gradient
+            self.Surface_Pixel_Y = self.Origin_Pixel_Y
 
-        self.Surface_US_X = (self.Surface_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
-        self.Surface_US_Y = (self.Surface_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
+            self.Surface_US_X = (self.Surface_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
+            self.Surface_US_Y = (self.Surface_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
 
-    # def Calculation_x_distance(self):
+        except Exception as e:
+            print(e)
 
 
     def set_values(self, attributes, value):
@@ -401,6 +465,18 @@ class US_IMAGE():
         return
 
 
-# a = US_IMAGE()
-# while True:
-#     b = (a.show_original_image())
+    def calculate_change_x(self):
+        if self.alpha == 0:
+            pass
+        else:
+            x = (403.81 * math.sin(0.18444 * math.pi - self.alpha)) / (math.sin(0.5985 * math.pi + self.alpha))
+            self.actuator_move_value = 170 - x
+            self.x_distance = x
+
+
+    def calculate_change_d(self):
+        d = 63.80 * math.sin(0.21641 * math.pi + self.alpha) / math.sin((math.pi / 2) - self.alpha)
+        self.d_distance = d
+
+
+
