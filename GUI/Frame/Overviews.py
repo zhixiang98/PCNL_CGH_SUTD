@@ -91,12 +91,21 @@ class Overview(tkinter.Frame):
                                                   command=lambda: self.connection_igtl_client(), width=c.BUTTON_WIDTH)
         self.Connect_IGTL_Button.grid(row=c.CONNECT_IGT_BUTTON_ROW, column=c.CONNECT_IGT_BUTTON_COLUMN)
 
+        self.Image_Two_Screen_Freeze_Button = tkinter.Button(self.Image_Setting_Label_Frame, text = "IMG2 Freeze", command = lambda: self.freeze_frame(2), width = c.BUTTON_WIDTH)
+        self.Image_Two_Screen_Freeze_Button.grid(row = c.IMAGE_TWO_SCREEN_FREEZE_BUTTON_ROW, column = c.IMAGE_TWO_SCREEN_FREEZE_BUTTON_COLUMN)
+
+        self.Image_Four_Screen_Freeze_Button = tkinter.Button(self.Image_Setting_Label_Frame, text="IMG4 Freeze",
+                                                             command=lambda: self.freeze_frame(4), width=c.BUTTON_WIDTH)
+        self.Image_Four_Screen_Freeze_Button.grid(row=c.IMAGE_FOUR_SCREEN_FREEZE_BUTTON_ROW,
+                                                 column=c.IMAGE_FOUR_SCREEN_FREEZE_BUTTON_COLUMN)
+
         # --- CB tkinter variables---
         self.Show_Origin_CB_Var = tkinter.IntVar()
         self.Show_Needle_CB_Line_Var = tkinter.IntVar()
         self.Show_Target_CB_Var = tkinter.IntVar()
         self.Show_US_Coord_CB_Var = tkinter.IntVar()
         self.Show_Projected_Line_CB_Var = tkinter.IntVar()
+        self.Show_Stacked_Images_CB_Var = tkinter.IntVar()
 
         # --- CB tkinter ----
         self.show_projected_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_projected_line",
@@ -125,6 +134,8 @@ class Overview(tkinter.Frame):
                                                     onvalue=1, offvalue=0)
         self.show_US_Coord_CB.grid(row=c.SHOW_US_COORD_CB_ROW, column=c.SHOW_US_COORD_CB_COLUMN, padx=20)
 
+        self.show_stacked_images_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text = "stacked_images", variable = self.Show_Stacked_Images_CB_Var, onvalue=1, offvalue=0)
+        self.show_stacked_images_CB.grid(row = c.SHOW_STACKED_IMAGES_CB_ROW, column = c.SHOW_STACKED_IMAGES_CB_COLUMN, padx = 20)
         # --------US_INFO_LABEL_FRAME--------------
 
         self.US_INFO_LABEL_FRAME = tkinter.LabelFrame(self, text="Ultrasound Information")
@@ -533,6 +544,22 @@ class Overview(tkinter.Frame):
 
         self.after(self.delay, self.update_canvas)
 
+    def freeze_frame(self, frame_number):
+        if frame_number == 2:
+            try:
+                self.main_image.image_freeze_frame(2)
+            except Exception as error:
+                print("No image to freeze 02")
+
+        elif frame_number == 4:
+            try:
+                self.main_image.image_freeze_frame(4)
+            except Exception as error:
+                print("No image to freeze 04")
+
+
+
+
     def Delete_Entry(self):
         self.commandentry.delete(0, 'end')
         self.treexentryx.delete(0, 'end')
@@ -780,6 +807,10 @@ class Overview(tkinter.Frame):
         else:
             self.main_image.show_target_CB = False
 
+        if self.Show_Stacked_Images_CB_Var.get() == 1:
+            self.main_image.show_stacked_images_CB = True
+        else:
+            self.main_image.show_stacked_images_CB = False
     def needle_driver_toggle_button(self, key):
         """Function callback when button "X+,X-,Y+,Y-,Z+,Z-"is pressed. Configure buttons"""
 

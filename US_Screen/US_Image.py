@@ -6,9 +6,10 @@ import cv2
 import copy
 import math
 
+
 class US_IMAGE():
     def __init__(self):
-        #---Pixel Coordinates---
+        # ---Pixel Coordinates---
         """
         Origin_Pixel_X, Origin_Pixel_Y are pixel coordinates  of the clicked origin from self.select_origin(). Measured from the image using CV2 coordinates
         Target_Pixel_X, Target_Pixel_Y are pixel coordinates measured from the image using CV2 coordinates. TODO: Not currently implemented
@@ -23,17 +24,17 @@ class US_IMAGE():
 
 
         """
-        self.Origin_Pixel_X , self.Origin_Pixel_Y = 0,0
-        self.Target_Pixel_X, self.Target_Pixel_Y = 0,0
-        self.Surface_Pixel_X, self.Surface_Pixel_Y =0,0
+        self.Origin_Pixel_X, self.Origin_Pixel_Y = 0, 0
+        self.Target_Pixel_X, self.Target_Pixel_Y = 0, 0
+        self.Surface_Pixel_X, self.Surface_Pixel_Y = 0, 0
 
-        self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y = 0,0
+        self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y = 0, 0
         self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y = 0, 0
 
         self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y = 0, 0
         self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y = 0, 0
 
-        #---Ultrasound Coordinates---
+        # ---Ultrasound Coordinates---
         """
         Ultrasound Coordinates are ALL measured from the center contact of the US probe
         To be in the units of :  < mm>
@@ -50,8 +51,8 @@ class US_IMAGE():
         self.Needle_End_US_X, self.Needle_End_US_Y = 0, 0
         self.Surface_US_X, self.Surface_US_Y = 0, 0
 
-        self.X_US_coordinates, self.Y_US_coordinates = 0,0 #currently not in used. to be used for target/ mouse selection to show distance between point and origin
-        #--- Important values---
+        self.X_US_coordinates, self.Y_US_coordinates = 0, 0  # currently not in used. to be used for target/ mouse selection to show distance between point and origin
+        # --- Important values---
         """
         Theta is the angle measured from the drawn needle line with the vertical axis
         Alpha is the angle actual angle made from the inserted needle with the vertical axis
@@ -61,16 +62,16 @@ class US_IMAGE():
 
         self.Theta = 0
         self.Alpha = 0
-        self.x_distance = 0 #x_distance is from the fixed point of actuator to needle
-        self.d_distance = 0 #d_distance is the horizontal distance from the probe to the needle
-        self.actuator_move_value = 0 #value to input to the needle driver
+        self.x_distance = 0  # x_distance is from the fixed point of actuator to needle
+        self.d_distance = 0  # d_distance is the horizontal distance from the probe to the needle
+        self.actuator_move_value = 0  # value to input to the needle driver
 
         self.gradient = 0
         self.intersect = 0
 
-        self.mm_per_pixel = 0 #mm per pixel provided by the US
+        self.mm_per_pixel = 0  # mm per pixel provided by the US
 
-        #---- igtl configuration ---------
+        # ---- igtl configuration ---------
         """
         host depends on the IP address of the US machine. Ideally try to make this same as robot/ FT-Sensor
         port also depends on the dedicated port of the US machine
@@ -78,12 +79,11 @@ class US_IMAGE():
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
         self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
 
-        #----- image resolution received from the message. Resolution of the US machine (1432 x 740)
+        # ----- image resolution received from the message. Resolution of the US machine (1432 x 740)
         self.imageSizeX = 1432
         self.imageSizeY = 740
 
-
-        #--- Images for display ----
+        # --- Images for display ----
         """
         images in the formate of np nd_array to be used and passed on to the Overview
         all the image data should be named in the format of img
@@ -94,18 +94,21 @@ class US_IMAGE():
         self.cache2img: image data of the cache image of the drawn needle_line image
         
         """
-        self.img = None #live time image that is shown on the UI, can be stacked or single parse to Overviews
-        self.select_origin_img = None #select origin image
-        self.cache1img = None # image that is "cleared" to be used for the select_origin function
-        self.cache2img = None # image that is "cleared" to be used for the draw_needle_line function
-        self.cache3img = None # image that is "cleared" to be used for the select_target function
-        self.labelled_img = None #img that is finally displayed and pass to update canvas
+        self.img = None  # live time image that is shown on the UI, can be stacked or single parse to Overviews
+        self.select_origin_img = None  # select origin image
+        self.cache1img = None  # image that is "cleared" to be used for the select_origin function
+        self.cache2img = None  # image that is "cleared" to be used for the draw_needle_line function
+        self.cache3img = None  # image that is "cleared" to be used for the select_target function
+        self.labelled_img = None  # img that is finally displayed and pass to update canvas
         self.select_target_img = None
 
         self.single_img = None
         self.stacked_img = None
 
-        #----Boolean variables for origin button clicked------
+        self.freezed_image_two = None
+        self.freezed_image_four = None
+
+        # ----Boolean variables for origin button clicked------
         """
         Boolean variables that help to navigate the logic of the select_origin() and draw_needle_line()
         
@@ -117,15 +120,19 @@ class US_IMAGE():
         self.target_selected = False
         self.stacked_images_selected = False
 
-
-        #-----CheckBoxes-----------
+        # -----CheckBoxes-----------
         self.show_origin_CB = False
         self.show_needle_line_CB = False
         self.show_projected_needle_line_CB = False
         self.show_US_coordinate_CB = False
         self.show_target_CB = False
+        self.show_stacked_images_CB = False
 
+        self.frame_two_freezed = False
+        self.frame_four_freezed = False
 
+        self.frame_two_freezed_captured = False
+        self.frame_four_freezed_captured = False
 
     def stackImages(self, scale, imgArray):
         """stackImages function allows for multiple image array to be displayed side by side. In a row x column square grid
@@ -189,8 +196,7 @@ class US_IMAGE():
 
          """
         self.stacked_img = self.stackImages(0.5, ([img1, img2], [img3, img4]))
-
-
+        return self.stacked_img
     def connect_igtl_client(self):
         """Reconnects to IGT client. Print "RECONNECTED_CLIENT upon success
 
@@ -202,7 +208,7 @@ class US_IMAGE():
         -------
 
         """
-        self.client.stop() #stop connection first
+        self.client.stop()  # stop connection first
         print("RECONNECTED_CLIENT")
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
 
@@ -226,14 +232,14 @@ class US_IMAGE():
         self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
         self.img = np.asarray(self.img)
 
-
-
-    def show_live_image(self,img1=None , img2=None, img3 =None, img4 =None):
+    def show_live_image(self, img1=None, img2=None, img3=None, img4=None):
         """
         Parse self.receive_image_message() that updates self.img
         Display a single live image of the Ultra Sound screen.
         Display different images based on the different CB
         """
+
+        self.receive_image_message()
 
         # #used for igtl settings with US from CreativeMed
         # self.receive_image_message()
@@ -243,7 +249,6 @@ class US_IMAGE():
         #     self.show_live_image_stacked(img1, img2, img3, img4)
         #     self.img = self.stacked_img
         #
-        self.receive_image_message()
 
         # placeholder image
 
@@ -269,10 +274,35 @@ class US_IMAGE():
             cv2.putText(self.labelled_img, '{}'.format((self.Target_Pixel_X, self.Target_Pixel_Y)), (100, 100),
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
 
+        if self.show_stacked_images_CB == True:
+            if self.frame_two_freezed == True:
+                if self.frame_two_freezed_captured == False:
+                    self.freezed_image_two =copy.deepcopy(self.labelled_img)
+                    self.frame_two_freezed_captured = True
 
+            else:
+                self.freezed_image_two = self.img
 
+            if self.frame_four_freezed == True:
+                if self.frame_four_freezed_captured == False:
+                    self.freezed_image_four = copy.deepcopy(self.labelled_img)
+                    self.frame_four_freezed_captured = True
+
+            else:
+                self.freezed_image_four = self.img
+            self.labelled_img = self.show_live_image_stacked(self.img, self.freezed_image_two, self.labelled_img,
+                                                             self.freezed_image_four)
+
+        else:
+            self.labelled_img = self.labelled_img
 
         # self.show_live_image_stacked(self.img,self.img,self.img,self.img)
+
+    def image_freeze_frame(self, frame_number):
+        if frame_number == 2:
+            self.frame_two_freezed = not self.frame_two_freezed
+        elif frame_number == 4:
+            self.frame_four_freezed = not self.frame_four_freezed
 
     def select_origin(self):
         """select_origin calls when button is pressed.
@@ -290,7 +320,7 @@ class US_IMAGE():
         cv2.imshow("Select Origin Window", self.select_origin_img)
         cv2.setMouseCallback("Select Origin Window", self.Mouse_Callback_Origin)
 
-    def Mouse_Callback_Origin(self, event, x, y,flags, param):
+    def Mouse_Callback_Origin(self, event, x, y, flags, param):
         """Mouse callback event using CV2
 
         Parameters
@@ -413,7 +443,8 @@ class US_IMAGE():
             self.cache2img = copy.deepcopy(self.img)
 
             self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y = x, y
-            cv2.circle(self.cache2img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y), radius=5, color=(255, 0, 0),
+            cv2.circle(self.cache2img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y), radius=5,
+                       color=(255, 0, 0),
                        thickness=-1)
             cv2.imshow("Draw Needle Line Window", self.cache2img)
             self.draw_needle_line_selected = True
@@ -436,7 +467,6 @@ class US_IMAGE():
             self.draw_needle_line_selected = True
             cv2.imshow("Draw Needle Line Window", self.cache2img)
 
-
     def Convert_Pixel_to_US_Coord(self):
         """Converts the pixel coordinates to the US coordinates in terms of mm.
         Requires the self.mm_per_pixel to convert.
@@ -447,10 +477,12 @@ class US_IMAGE():
             self.X_US_coordinates = (self.Target_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
             self.Y_US_coordinates = (self.Target_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
 
-            self.gradient = (self.Needle_End_Pixel_Y-self.Needle_Start_Pixel_Y) / (self.Needle_End_Pixel_X-self.Needle_Start_Pixel_X)
-            self.intersect = self.Needle_End_Pixel_Y - (self.gradient*self.Needle_End_Pixel_X) #using y=mx+c, to get c
+            self.gradient = (self.Needle_End_Pixel_Y - self.Needle_Start_Pixel_Y) / (
+                        self.Needle_End_Pixel_X - self.Needle_Start_Pixel_X)
+            self.intersect = self.Needle_End_Pixel_Y - (
+                        self.gradient * self.Needle_End_Pixel_X)  # using y=mx+c, to get c
 
-            self.Surface_Pixel_X = (self.Origin_Pixel_Y-self.intersect) / self.gradient
+            self.Surface_Pixel_X = (self.Origin_Pixel_Y - self.intersect) / self.gradient
             self.Surface_Pixel_Y = self.Origin_Pixel_Y
 
             self.Surface_US_X = (self.Surface_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
@@ -459,11 +491,9 @@ class US_IMAGE():
         except Exception as e:
             print(e)
 
-
     def set_values(self, attributes, value):
         attributes = value
         return
-
 
     def calculate_change_x(self):
         if self.alpha == 0:
@@ -473,10 +503,6 @@ class US_IMAGE():
             self.actuator_move_value = 170 - x
             self.x_distance = x
 
-
     def calculate_change_d(self):
         d = 63.80 * math.sin(0.21641 * math.pi + self.alpha) / math.sin((math.pi / 2) - self.alpha)
         self.d_distance = d
-
-
-
