@@ -494,8 +494,23 @@ class Overview(tkinter.Frame):
         try:
             self.ALPHA.set(self.main_image.Alpha)
         except Exception as error:
-            print("No image data can be displayed", error)
-
+            print("No alpha data can be displayed", error)
+        try:
+            self.OFFSET_X_DISTANCE.set(self.main_image.x_distance)
+        except Exception as error:
+            print("No x_distance_move data can be displayed",error)
+        try:
+            self.OFFSET_D_DISTANCE.set(self.main_image.d_distance)
+        except Exception as error:
+            print("No d_distance data can be displayed",error)
+        try:
+            self.MOVE_DISTANCE_ACTUATOR.set(self.main_image.actuator_move_value)
+        except Exception as error:
+            print("No actuator_move_value can be displayed", error)
+        try:
+            self.MOVE_UR_ROBOT_BY.set(self.main_image.robot_move_value)
+        except Exception as error:
+            print("No UR_move_value can be displayed",error)
 
         self.after(self.delay, self.update_info_frame_label)
 
@@ -548,12 +563,25 @@ class Overview(tkinter.Frame):
         if frame_number == 2:
             try:
                 self.main_image.image_freeze_frame(2)
+                if self.main_image.frame_two_freezed == True:
+                    self.Image_Two_Screen_Freeze_Button.config(relief = 'sunken')
+                    self.Image_Two_Screen_Freeze_Button.config(bg = 'spring green')
+                else:
+                    self.Image_Two_Screen_Freeze_Button.config(relief = 'raised')
+                    self.Image_Two_Screen_Freeze_Button.config(bg = 'SystemButtonFace')
             except Exception as error:
                 print("No image to freeze 02")
 
         elif frame_number == 4:
             try:
                 self.main_image.image_freeze_frame(4)
+                if self.main_image.frame_four_freezed == True:
+                    self.Image_Four_Screen_Freeze_Button.config(relief = 'sunken')
+                    self.Image_Four_Screen_Freeze_Button.config(bg = 'spring green')
+                else:
+                    self.Image_Four_Screen_Freeze_Button.config(relief = 'raised')
+                    self.Image_Four_Screen_Freeze_Button.config(bg = 'SystemButtonFace')
+
             except Exception as error:
                 print("No image to freeze 04")
 
@@ -798,7 +826,6 @@ class Overview(tkinter.Frame):
 
         if self.Show_US_Coord_CB_Var.get() == 1:
             self.main_image.show_US_coordinate_CB = True
-
         else:
             self.main_image.show_US_coordinate_CB = False
 
@@ -1082,6 +1109,7 @@ class Overview(tkinter.Frame):
 
     def convert_pixel_to_US_coord(self):
         try:
+            self.main_image.mm_per_pixel = float(self.MILIMTR_PER_PIXEL.get())
             self.main_image.Convert_Pixel_to_US_Coord()
         except AttributeError as e:
             print("ERROR: " + str(e))

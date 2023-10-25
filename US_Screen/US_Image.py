@@ -51,6 +51,9 @@ class US_IMAGE():
         self.Needle_End_US_X, self.Needle_End_US_Y = 0, 0
         self.Surface_US_X, self.Surface_US_Y = 0, 0
 
+        self.Projected_Needle_Start_US_X, self.Projected_Needle_Start_US_Y = 0, 0
+        self.Projected_Needle_End_US_X, self.Projected_Needle_End_US_Y = 0, 0
+
         self.X_US_coordinates, self.Y_US_coordinates = 0, 0  # currently not in used. to be used for target/ mouse selection to show distance between point and origin
         # --- Important values---
         """
@@ -62,9 +65,11 @@ class US_IMAGE():
 
         self.Theta = 0
         self.Alpha = 0
+        self.Alpha_in_radians = self.Alpha / 180 * math.pi
         self.x_distance = 0  # x_distance is from the fixed point of actuator to needle
         self.d_distance = 0  # d_distance is the horizontal distance from the probe to the needle
         self.actuator_move_value = 0  # value to input to the needle driver
+        self.robot_move_value = 0
 
         self.gradient = 0
         self.intersect = 0
@@ -76,8 +81,8 @@ class US_IMAGE():
         host depends on the IP address of the US machine. Ideally try to make this same as robot/ FT-Sensor
         port also depends on the dedicated port of the US machine
         """
-        # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
-        self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
+        self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
+        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
 
         # ----- image resolution received from the message. Resolution of the US machine (1432 x 740)
         self.imageSizeX = 1432
@@ -197,6 +202,7 @@ class US_IMAGE():
          """
         self.stacked_img = self.stackImages(0.5, ([img1, img2], [img3, img4]))
         return self.stacked_img
+
     def connect_igtl_client(self):
         """Reconnects to IGT client. Print "RECONNECTED_CLIENT upon success
 
@@ -210,7 +216,7 @@ class US_IMAGE():
         """
         self.client.stop()  # stop connection first
         print("RECONNECTED_CLIENT")
-        # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
+        self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
 
     def receive_image_message(self):
         """Receives message from server. Currently only receiving IMAGE messages
@@ -220,8 +226,8 @@ class US_IMAGE():
         none currently """
 
         # self.message = self.client.wait_for_message(device_name="USImage", timeout =5.0)
-
-        # #used for igtl settings with US from CreativeMed
+        # # #
+        # # #used for igtl settings with US from CreativeMed
         # self.img = self.message.image
         # print(type(self.img))
         # self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
@@ -263,9 +269,11 @@ class US_IMAGE():
             cv2.line(self.labelled_img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y),
                      (self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y), (255, 255, 255), 3)
 
-        if self.show_projected_needle_line_CB:
+        if self.show_projected_needle_line_CB == True:
+            print("projected need pts are:")
+            print(self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_End_Pixel_X)
             cv2.line(self.labelled_img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
-                     (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (0, 255, 255), 3)
+                     (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (255, 255, 255), 3)
 
         if self.show_target_CB == True:
             cv2.circle(self.labelled_img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
@@ -277,11 +285,12 @@ class US_IMAGE():
         if self.show_stacked_images_CB == True:
             if self.frame_two_freezed == True:
                 if self.frame_two_freezed_captured == False:
-                    self.freezed_image_two =copy.deepcopy(self.labelled_img)
+                    self.freezed_image_two = copy.deepcopy(self.labelled_img)
                     self.frame_two_freezed_captured = True
 
             else:
-                self.freezed_image_two = self.img
+                self.freezed_image_two = self.labelled_img
+                self.frame_two_freezed_captured = False
 
             if self.frame_four_freezed == True:
                 if self.frame_four_freezed_captured == False:
@@ -289,7 +298,9 @@ class US_IMAGE():
                     self.frame_four_freezed_captured = True
 
             else:
-                self.freezed_image_four = self.img
+                self.freezed_image_four = self.labelled_img
+                self.frame_four_freezed_captured = False
+
             self.labelled_img = self.show_live_image_stacked(self.img, self.freezed_image_two, self.labelled_img,
                                                              self.freezed_image_four)
 
@@ -422,7 +433,7 @@ class US_IMAGE():
             x_difference = self.Needle_End_Pixel_X - self.Needle_Start_Pixel_X
             self.Alpha = math.atan(x_difference / y_difference)
             self.Alpha = self.Alpha / math.pi * 180
-        except ValueError:
+        except:
             print("ZERO DIVISION ERROR")
             pass
 
@@ -463,7 +474,12 @@ class US_IMAGE():
             cv2.line(self.cache2img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y),
                      (self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y),
                      (255, 255, 255), 3)
+
+            """calculate and updates the target angle, x_distance, d_distance"""
             self.calculate_target_angle()
+            self.calculate_change_x()
+            self.calculate_change_d()
+
             self.draw_needle_line_selected = True
             cv2.imshow("Draw Needle Line Window", self.cache2img)
 
@@ -478,15 +494,20 @@ class US_IMAGE():
             self.Y_US_coordinates = (self.Target_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
 
             self.gradient = (self.Needle_End_Pixel_Y - self.Needle_Start_Pixel_Y) / (
-                        self.Needle_End_Pixel_X - self.Needle_Start_Pixel_X)
+                    self.Needle_End_Pixel_X - self.Needle_Start_Pixel_X)
             self.intersect = self.Needle_End_Pixel_Y - (
-                        self.gradient * self.Needle_End_Pixel_X)  # using y=mx+c, to get c
+                    self.gradient * self.Needle_End_Pixel_X)  # using y=mx+c, to get c
 
             self.Surface_Pixel_X = (self.Origin_Pixel_Y - self.intersect) / self.gradient
             self.Surface_Pixel_Y = self.Origin_Pixel_Y
 
             self.Surface_US_X = (self.Surface_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
             self.Surface_US_Y = (self.Surface_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
+
+
+            self.calculate_UR_robot_move()
+
+            self.calculate_projected_needle_pixel()
 
         except Exception as e:
             print(e)
@@ -496,13 +517,33 @@ class US_IMAGE():
         return
 
     def calculate_change_x(self):
-        if self.alpha == 0:
+        if self.Alpha == 0:
             pass
         else:
-            x = (403.81 * math.sin(0.18444 * math.pi - self.alpha)) / (math.sin(0.5985 * math.pi + self.alpha))
+            self.Alpha_in_radians = self.Alpha / 180 * math.pi
+            x = (403.78 * math.sin(0.18444 * math.pi - self.Alpha_in_radians)) / (
+                math.sin(0.41411 * math.pi + self.Alpha_in_radians))
             self.actuator_move_value = 170 - x
             self.x_distance = x
 
     def calculate_change_d(self):
-        d = 63.80 * math.sin(0.21641 * math.pi + self.alpha) / math.sin((math.pi / 2) - self.alpha)
+        self.Alpha_in_radians = self.Alpha / 180 * math.pi
+        d = 63.80 * math.sin(0.21641 * math.pi + self.Alpha_in_radians) / math.sin(
+            (math.pi / 2) - self.Alpha_in_radians)
         self.d_distance = d
+
+    def calculate_UR_robot_move(self):
+        self.robot_move_value = self.Surface_US_X - self.d_distance
+
+    def calculate_projected_needle_pixel(self):
+        self.Projected_Needle_Start_US_X = self.Needle_Start_US_X + self.d_distance
+        self.Projected_Needle_Start_US_Y = self.Needle_Start_US_Y
+
+        self.Projected_Needle_End_US_X = self.Needle_End_US_X + self.d_distance
+        self.Projected_Needle_End_US_Y = self.Needle_End_US_Y
+
+        self.Projected_Needle_Start_Pixel_X = self.Projected_Needle_Start_US_X / self.mm_per_pixel
+        self.Projected_Needle_End_Pixel_X = self.Projected_Needle_End_US_X / self.mm_per_pixel
+
+        self.Projected_Needle_Start_Pixel_Y = self.Projected_Needle_Start_US_Y /self.mm_per_pixel
+        self.Projected_Needle_End_Pixel_Y = self.Projected_Needle_End_US_Y / self.mm_per_pixel

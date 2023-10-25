@@ -8,8 +8,8 @@ import time
 server = pyigtl.OpenIGTLinkServer(port=18944, local_server=True)
 
 image = cv2.VideoCapture(0,cv2.CAP_DSHOW)
-image.set(3,100)
-image.set(4,50)
+image.set(3,720)
+image.set(4,560)
 
 timestep = 0
 while True:
