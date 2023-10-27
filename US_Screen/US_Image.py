@@ -536,14 +536,8 @@ class US_IMAGE():
         self.robot_move_value = self.Surface_US_X - self.d_distance
 
     def calculate_projected_needle_pixel(self):
-        self.Projected_Needle_Start_US_X = self.Needle_Start_US_X + self.d_distance
-        self.Projected_Needle_Start_US_Y = self.Needle_Start_US_Y
+        self.Projected_Needle_Start_Pixel_X = self.Needle_Start_Pixel_X +int(self.robot_move_value/self.mm_per_pixel)
+        self.Projected_Needle_End_Pixel_X = self.Needle_End_Pixel_X +int(self.robot_move_value/self.mm_per_pixel)
 
-        self.Projected_Needle_End_US_X = self.Needle_End_US_X + self.d_distance
-        self.Projected_Needle_End_US_Y = self.Needle_End_US_Y
-
-        self.Projected_Needle_Start_Pixel_X = self.Projected_Needle_Start_US_X / self.mm_per_pixel
-        self.Projected_Needle_End_Pixel_X = self.Projected_Needle_End_US_X / self.mm_per_pixel
-
-        self.Projected_Needle_Start_Pixel_Y = self.Projected_Needle_Start_US_Y /self.mm_per_pixel
-        self.Projected_Needle_End_Pixel_Y = self.Projected_Needle_End_US_Y / self.mm_per_pixel
+        self.Projected_Needle_Start_Pixel_Y = int(self.Needle_Start_Pixel_Y)
+        self.Projected_Needle_End_Pixel_Y = int(self.Needle_End_Pixel_Y)

@@ -1,3 +1,4 @@
+
 import time
 import tkinter
 import GUI.Frame.constants as c
@@ -8,6 +9,8 @@ import threading
 from tkinter import ttk
 import US_Screen.US_Image
 import Needle_Driver.NeedleDriver_Controller as ND
+
+
 
 
 class Overview(tkinter.Frame):
@@ -1113,5 +1116,15 @@ class Overview(tkinter.Frame):
             self.main_image.Convert_Pixel_to_US_Coord()
         except AttributeError as e:
             print("ERROR: " + str(e))
+
+    def Robot_Connect_Button(self):
+        try:
+            Robot_IP = self.IP_Text_Variable.get()
+            XML_Location = "../PCNL_CGH_SUTD/UR_Robot/control_loop_configuration.xml"
+            self.Robot = UR_Robot(Robot_IP,XML_Location)
+
+        except Exception as e:
+            print("ERROR")
+            print(e)
 
 
