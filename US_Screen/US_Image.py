@@ -270,8 +270,8 @@ class US_IMAGE():
                      (self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y), (255, 255, 255), 3)
 
         if self.show_projected_needle_line_CB == True:
-            print("projected need pts are:")
-            print(self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_End_Pixel_X)
+            # print("projected need pts are:")
+            # print(self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_End_Pixel_X)
             cv2.line(self.labelled_img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
                      (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (255, 255, 255), 3)
 

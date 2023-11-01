@@ -1,5 +1,6 @@
 from rtde import rtde, rtde_config
-import UR_Robot.constants as c
+from PCNL_CGH_SUTD.UR_Robot import constants as c
+# import UR_Robot.constants as c
 import sys
 import numpy as np
 """Class that manages the UR_Robot in general.Relies on the rtde package
@@ -17,20 +18,22 @@ import numpy as np
     """
 
 
-class UR_ROBOT():
+class UR_10E():
     #Initialise the UR ROBOT class
-    def __init__(self, ROBOT_IP, Config_File):
+    def __init__(self, ROBOT_IP = c.ROBOT_IP):
+        print("SUCCESSFULLY CONNECTED!")
         self.state = None
-        self.ROBOT_HOST = c.ROBOT_IP
+        self.ROBOT_HOST = ROBOT_IP
         self.ROBOT_PORT = c.ROBOT_PORT
-        self.config_filename = c.CONFIG_FILE
+        # self.config_filename = c.CONFIG_FILE
+        self.config_filename = "C:/Users/Zhi Xiang/Desktop/pythonProject/PCNL_CGH_SUTD/UR_Robot/control_loop_configuration.xml"
         self.conf = rtde_config.ConfigFile(self.config_filename)
         self.state_names, self.state_types = self.conf.get_recipe('state')
         self.setp_names, self.setp_types = self.conf.get_recipe('setp')
         self.watchdog_names, self.watchdog_types = self.conf.get_recipe('watchdog')
 
         self.con = rtde.RTDE(self.ROBOT_HOST, self.ROBOT_PORT)
-        self.connction_state = self.con.connect()
+        self.connection_state = self.con.connect()
 
         print("--successful connected")  # TODO maybe can add logging. KIV.
 
@@ -53,7 +56,7 @@ class UR_ROBOT():
         if not self.con.send_start():
             sys.exit()
 
-    def Update_Date(self):
+    def Update_Data(self):
         # Create a dictionary to store the useful robot data, return dictionary at the end
         # Dictionary values include TCP_POS, Robot_Output's double register, Robot Output's Output integer register
         dict = {}

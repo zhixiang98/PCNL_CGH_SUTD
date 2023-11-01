@@ -2,7 +2,7 @@
 import time
 import tkinter
 import GUI.Frame.constants as c
-import UR_Robot
+import UR_Robot.UR_ROBOT
 import cv2
 import PIL.Image, PIL.ImageTk
 import threading
@@ -10,7 +10,10 @@ from tkinter import ttk
 import US_Screen.US_Image
 import Needle_Driver.NeedleDriver_Controller as ND
 
-
+# from ...GUI.Frame import constants as c
+# from ...UR_Robot.UR_ROBOT import UR_ROBOT
+# from ...US_Screen import US_Image
+# import Needle
 
 
 class Overview(tkinter.Frame):
@@ -276,6 +279,7 @@ class Overview(tkinter.Frame):
         self.UR_MODE_BUTTON.grid(row=0, column=5)
 
         # ------NeedleDriver Controller--------------
+
         # --Tkinter Variable_X_Axis
         self.X_NEEDLE_VAR = tkinter.StringVar()
         # --X_Axis_Element
@@ -311,8 +315,7 @@ class Overview(tkinter.Frame):
         self.X_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.X_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.needle_driver_move_button("Z",
-                                                                                                  self.X_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("X"))
         self.X_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.X_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_X_MOVE_FRAME, text="STOP", padx=5, pady=5,
@@ -352,16 +355,15 @@ class Overview(tkinter.Frame):
         self.Y_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.Y_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.needle_driver_move_button("Y",
-                                                                                                  self.Y_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("Y"))
         self.Y_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.Y_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_Y_MOVE_FRAME, text="STOP", padx=5, pady=5,
                                                    command=lambda: self.needle_driver_stop_button("Y"))
         self.Y_NEEDLE_STOP_BUTTON.grid(row=0, column=6, sticky="nsew")
 
-        self.Y_POSITION = tkinter.Label(self.NEEDLE_Y_MOVE_FRAME, text="Y Value: ")
-        self.Y_POSITION.grid(row=0, column=7, sticky="nsew", padx=10)
+        self.Y_Label_POSITION = tkinter.Label(self.NEEDLE_Y_MOVE_FRAME, text="Y Value: ")
+        self.Y_Label_POSITION.grid(row=0, column=7, sticky="nsew", padx=10)
 
         # --Tkinter Variable_Z_Axis
         self.Z_NEEDLE_VAR = tkinter.StringVar()
@@ -393,16 +395,15 @@ class Overview(tkinter.Frame):
         self.Z_NEEDLE_ENTRY_BOX.grid(row=0, column=4, padx=10)
 
         self.Z_NEEDLE_MOVE_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="MOVE", padx=5, pady=5,
-                                                   command=lambda: self.needle_driver_move_button("Z",
-                                                                                                  self.Z_NEEDLE_ENTRY_BOX.get()))
+                                                   command=lambda: self.needle_driver_move_button("Z"))
         self.Z_NEEDLE_MOVE_BUTTON.grid(row=0, column=5, sticky="nsew")
 
         self.Z_NEEDLE_STOP_BUTTON = tkinter.Button(self.NEEDLE_Z_MOVE_FRAME, text="STOP", padx=5, pady=5,
                                                    command=lambda: self.needle_driver_stop_button("Z"))
         self.Z_NEEDLE_STOP_BUTTON.grid(row=0, column=6, sticky="nsew")
 
-        self.Z_POSITION = tkinter.Label(self.NEEDLE_Z_MOVE_FRAME, text="Z Value: ")
-        self.Z_POSITION.grid(row=0, column=7, sticky="nsew", padx=10)
+        self.Z_Label_POSITION = tkinter.Label(self.NEEDLE_Z_MOVE_FRAME, text="Z Value: ")
+        self.Z_Label_POSITION.grid(row=0, column=7, sticky="nsew", padx=10)
 
         self.CONNECT_NEEDLE_DRIVER_BUTTON = tkinter.Button(self.NEEDLE_DRIVER_FRAME, text="Connect",
                                                            command=lambda: self.connect_needle_driver())
@@ -492,6 +493,29 @@ class Overview(tkinter.Frame):
 
         self.update_canvas()
         self.update_info_frame_label()
+    def Update_Robot_Data(self):
+        """Update_Robot_Data updates the register from the robot side to the computer side"""
+
+        state = self.Robot.Update_Data()
+
+        # self.TCP_Text_Variable = str(self.state.actual_TCP_pose)
+        # self.after(self.delay, self.Update_Robot_Data())
+        self.TCP_TEXT_VARIABLE.set(str(state.get("TCP_POS")))
+        # print(state.actual_TCP_pose)
+        self.INPUT_REGISTER00.set(state.get("input_double_register0"))
+        self.INPUT_REGISTER01.set(state.get("input_double_register1"))
+        self.INPUT_REGISTER02.set(state.get("input_double_register2"))
+        self.INPUT_REGISTER03.set(state.get("input_double_register3"))
+        self.INPUT_REGISTER04.set(state.get("input_double_register4"))
+        self.INPUT_REGISTER05.set(state.get("input_double_register5"))
+
+        # defaults back to MODE 0 after it receives that input_integer_register0 == 2 aka each execution of the program is completed
+        if state.get("input_integer_register0") == 2:
+            print("input reg == 2 ")
+            self.Robot.watchdog.input_int_register_0 = 0
+            self.Robot.con.send(self.Robot.watchdog)
+
+        self.after(2, self.Update_Robot_Data)
 
     def update_info_frame_label(self):
         try:
@@ -521,7 +545,7 @@ class Overview(tkinter.Frame):
     def update_canvas(self):
         start_time = time.time()
 
-        # if (self.main_image.client.is_connected()) == False:
+        # if (self.main_image.clent.is_connected()) == False:
         #     print("CLIENT IS NOT CONNECTED")
         #     return
 
@@ -561,6 +585,18 @@ class Overview(tkinter.Frame):
         #     print("An error occurred:", error)  # An error occurred: name 'x' is not defined
 
         self.after(self.delay, self.update_canvas)
+
+    def update_Needle_Driver_Data(self):
+        try:
+            self.Needle_Driver.read_values()
+            "Updates Label of the X/Y/Z of the needle label"
+            self.X_Label_POSITION["text"] = "X_Value: " + str(self.Needle_Driver.X_ND_Values)
+            self.Y_Label_POSITION["text"] = "Y Value: " + str(self.Needle_Driver.Y_ND_Values)
+            self.Z_Label_POSITION["text"] = "Z Value: " + str(self.Needle_Driver.Z_ND_Values)
+        except Exception as error:
+            print("ERROR!")
+            print(error)
+        self.after(500, self.update_Needle_Driver_Data)
 
     def freeze_frame(self, frame_number):
         if frame_number == 2:
@@ -699,56 +735,70 @@ class Overview(tkinter.Frame):
         for commands in instructions:
             self.treeview.selection_set(commands.get("iid"))
             try:
-                valx = float(commands.get("command")[1])
-            except:
-                # print("x value invalid!")
+                valx = int(commands.get("command")[1])
+                print(valx)
+            except Exception as error:
+                print("x value invalid!" + str(error))
                 pass
             try:
-                valy = float(commands.get("command")[1])
-            except:
-                # print("y value invalid!)
-                pass
+                valy = int(commands.get("command")[2])
+                print(valy)
+            except Exception as error:
+                print("y value invalid!" + str(error))
             try:
-                valz = float(commands.get("command")[2])
-            except:
-                # print("z value invalid!")
+                valz = int(commands.get("command")[3])
+                print(valz)
+            except Exception as error:
+                print("z value invalid!" + str(error))
                 pass
 
             if commands.get("command")[0] == "ND_HOME_X":
                 try:
-                    self.send_needle_driver_home_command("X", "START")
+                    self.Needle_Driver.send_needle_driver_home_command("X", "START")
+                    self.Needle_Driver.wait_for_idle()
                     # time.sleep(10)
-                except:
-                    print("CANNOT HOME X_NEEDLE_DRIVER")
+                except Exception as error:
+                    print("CANNOT HOME X_NEEDLE_DRIVER" + str(error))
             elif commands.get("command")[0] == "ND_HOME_Y":
                 try:
-                    self.send_needle_driver_home_command("Y", "START")
-                    self.send_needle_driver_home_command("Y", "STOP")
+                    self.Needle_Driver.send_needle_driver_home_command("Y", "START")
+                    self.Needle_Driver.wait_for_idle()
 
+                    # self.Needle_Driver.send_needle_driver_home_command("Y", "STOP")
 
-                except:
-                    print("CANNOT HOME Y_NEEDLE_DRIVER")
+                except Exception as error:
+                    print("CANNOT HOME Y_NEEDLE_DRIVER" + str(error))
             elif commands.get("command")[0] == "ND_HOME_Z":
                 try:
-                    self.send_needle_driver_home_command("Z", "START")
-                    self.send_needle_driver_home_command("Z", "STOP")
+                    self.Needle_Driver.send_needle_driver_home_command("Z", "START")
+                    self.Needle_Driver.wait_for_idle()
+
+                    # self.Needle_Driver.send_needle_driver_home_command("Z", "STOP")
+
+                except Exception as error:
+                    print("CANNOT HOME Z_NEEDLE_DRIVER" + str(error))
+            elif commands.get("command")[0] == "ND_MOVE_X":
+                # currently using the hacky way of jogging Z motor instead of positioning
+                try:
+                    self.Needle_Driver.z_move_command(valx, "START")
+                    self.Needle_Driver.wait_for_idle()
                 except:
-                    print("CANNOT HOME Z_NEEDLE_DRIVER")
+                    print("CANNOT MOVE TO REQUIRED X VALUE")
+
             elif commands.get("command")[0] == "ND_MOVE_Y":
                 try:
-                    self.y_move_command(self.MOVE_DISTANCE_ACTUATOR.get())
+                    self.Needle_Driver.y_move_command(valy,"START")
+                    self.Needle_Driver.wait_for_idle()
                     # time.sleep(10)
-                except:
-                    print("CANNOT MOVE TO REQUIRED Y VALUE")
+                except Exception as error:
+                    print("CANNOT MOVE TO REQUIRED Y VALUE" + str(error))
             elif commands.get("command")[0] == "ND_MOVE_Z":
                 # currently using the hacky way of jogging Z motor instead of positioning
                 try:
-                    self.send_needle_driver_toggle_command("Z+", "START")
-                    time.sleep(10)
-                    self.send_needle_driver_toggle_command("Z+", "STOP")
-
-                except:
-                    print("CANNOT MOVE TO REQUIRED Z VALUE")
+                    self.Needle_Driver.z_move_command(valz, "START")
+                    self.Needle_Driver.wait_for_idle()
+                except Exception as error:
+                    print("CANNOT MOVE TO REQUIRED Z VALUE" + str(error))
 
             elif commands.get("command")[0] == "UR_MOVE_Z_UP":
                 self.Robot_Change_Mode(1)
@@ -777,7 +827,6 @@ class Overview(tkinter.Frame):
             #     except:
             #         print("FAILED TO CHANGE MODE TO 2")
 
-            time.sleep(10)
 
             print("NEXT COMMAND")
 
@@ -991,65 +1040,35 @@ class Overview(tkinter.Frame):
 
     def needle_driver_stop_button(self, axis):
         if axis == "X":
-            if self.X_NEEDLE_STOP_BUTTON["relief"] == "raised":
-                try:
-                    self.Needle_Driver.send_needle_driver_stop_command("X", "START")
-                except AttributeError as e:
-                    print("ERROR: " + str(e))
-                self.X_NEEDLE_STOP_BUTTON.config(relief='sunken')
-                self.X_NEEDLE_STOP_BUTTON.config(bg='spring green')
-            else:
-                try:
-                    self.Needle_Driver.send_needle_driver_stop_command("X", "STOP")
-                except AttributeError as e:
-                    print("ERROR: " + str(e))
-                self.X_NEEDLE_STOP_BUTTON.config(relief="raised")
-                self.X_NEEDLE_STOP_BUTTON.config(bg='SystemButtonFace')
+            try:
+                self.Needle_Driver.send_needle_driver_stop_command("X")
+            except AttributeError as e:
+                print("ERROR: " + str(e))
 
         if axis == "Y":
-            if self.Y_NEEDLE_STOP_BUTTON["relief"] == "raised":
-                try:
-                    self.Needle_Driver.send_needle_driver_stop_command("Y", "START")
-                except AttributeError as e:
-                    print("ERROR: " + str(e))
-                self.Y_NEEDLE_STOP_BUTTON.config(relief='sunken')
-                self.Y_NEEDLE_STOP_BUTTON.config(bg='spring green')
-            else:
-                try:
-                    self.Needle_Driver.send_needle_driver_stop_command("Y", "STOP")
-                except AttributeError as e:
-                    print("ERROR: " + str(e))
-                self.Y_NEEDLE_STOP_BUTTON.config(relief="raised")
-                self.Y_NEEDLE_STOP_BUTTON.config(bg='SystemButtonFace')
+            try:
+                self.Needle_Driver.send_needle_driver_stop_command("Y")
+            except AttributeError as e:
+                print("ERROR: " + str(e))
 
         if axis == "Z":
-            if self.Z_NEEDLE_STOP_BUTTON["relief"] == "raised":
-                try:
-                    self.Needle_Driver.send_needle_driver_stop_command("Z", "START")
-                except AttributeError as e:
-                    print("ERROR: " + str(e))
-                self.Z_NEEDLE_STOP_BUTTON.config(relief='sunken')
-                self.Z_NEEDLE_STOP_BUTTON.config(bg='spring green')
-            else:
-                try:
-                    self.Needle_Driver.send_needle_driver_stop_command("Z", "STOP")
-                except AttributeError as e:
-                    print("ERROR: " + str(e))
-                self.Z_NEEDLE_STOP_BUTTON.config(relief="raised")
-                self.Z_NEEDLE_STOP_BUTTON.config(bg='SystemButtonFace')
+            try:
+                self.Needle_Driver.send_needle_driver_stop_command("Z")
+            except AttributeError as e:
+                print("ERROR: " + str(e))
 
     def needle_driver_reset_button(self, axis):
         if axis == "X":
             if self.X_RESET_TOGGLE_BUTTON["relief"] == "raised":
                 try:
-                    self.Needle_Driver.needle_driver_reset.command("X", "START")
+                    self.Needle_Driver.send_needle_driver_reset_command("X", "START")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.X_RESET_TOGGLE_BUTTON.config(relief='sunken')
                 self.X_RESET_TOGGLE_BUTTON.config(bg='spring green')
             else:
                 try:
-                    self.Needle_Driver.needle_driver_reset.command("X", "STOP")
+                    self.Needle_Driver.send_needle_driver_reset_command("X", "STOP")
                 except AttributeError as e:
                     print("ERROR: " + str(e))
                 self.X_RESET_TOGGLE_BUTTON.config(relief="raised")
@@ -1087,28 +1106,33 @@ class Overview(tkinter.Frame):
                 self.Z_RESET_TOGGLE_BUTTON.config(relief="raised")
                 self.Z_RESET_TOGGLE_BUTTON.config(bg='SystemButtonFace')
 
-    def needle_driver_move_button(self, axis, value):
+    def needle_driver_move_button(self, axis):
         if axis == "X":
             try:
-                self.Needle_Driver.x_move_command(value)
+                value = self.X_NEEDLE_ENTRY_BOX.get()
+                self.Needle_Driver.x_move_command(value,"START")
             except AttributeError as e:
                 print("ERROR: " + str(e))
         if axis == "Y":
             try:
-                self.Needle_Driver.y_move_command(value)
+                value = self.Y_NEEDLE_ENTRY_BOX.get()
+                self.Needle_Driver.y_move_command(value,"START")
             except AttributeError as e:
                 print("ERROR: " + str(e))
         if axis == "Z":
             try:
-                self.Needle_Driver.z_move_command(value)
+                value = self.Z_NEEDLE_ENTRY_BOX.get()
+                self.Needle_Driver.z_move_command(value,"START")
             except AttributeError as e:
                 print("ERROR: " + str(e))
 
     def connect_needle_driver(self):
         try:
             self.Needle_Driver = ND.NeedleDriverController()
+            self.update_Needle_Driver_Data()
+
         except:
-            print("error not connected")
+            print("ERORR. Needle Driver not connected")
 
     def convert_pixel_to_US_coord(self):
         try:
@@ -1118,13 +1142,31 @@ class Overview(tkinter.Frame):
             print("ERROR: " + str(e))
 
     def Robot_Connect_Button(self):
-        try:
-            Robot_IP = self.IP_Text_Variable.get()
-            XML_Location = "../PCNL_CGH_SUTD/UR_Robot/control_loop_configuration.xml"
-            self.Robot = UR_Robot(Robot_IP,XML_Location)
+        Robot_IP = self.IP_Text_Variable.get()
+        print(Robot_IP)
+        self.Robot = UR_Robot.UR_ROBOT.UR_10E(Robot_IP)
 
-        except Exception as e:
-            print("ERROR")
-            print(e)
+        self.Robot.watchdog.input_int_register_0 = 0
+        self.Robot.con.send(self.Robot.watchdog)
 
+        self.Update_Robot_Data()
+        # print("CONNECTED UR_ROBOT")
 
+    def Robot_Change_Mode(self, int_var):
+        # int_var = self.UR_MODE.get()
+        self.Robot.watchdog.input_int_register_0 = int_var
+        self.Robot.con.send(self.Robot.watchdog)
+
+    def Robot_Send_Output(self):
+        reg0 = self.OUTPUT_DB_REG0.get()
+        reg1 = self.OUTPUT_DB_REG1.get()
+        reg2 = self.OUTPUT_DB_REG2.get()
+        reg3 = self.OUTPUT_DB_REG3.get()
+        reg4 = self.OUTPUT_DB_REG4.get()
+        reg5 = self.OUTPUT_DB_REG5.get()
+
+        LIST = [reg0, reg1, reg2, reg3, reg4, reg5]
+        print(LIST)
+        Result = self.Robot.list_to_setp(LIST)
+        self.Robot.con.send(Result)
+        print("send successfully")

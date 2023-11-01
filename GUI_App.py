@@ -2,8 +2,7 @@ import tkinter
 import constants as c
 
 from US_Screen.US_Screen_Share import US_SCREEN
-from US_Screen.US_Image import US_IMAGE
-
+from UR_Robot.UR_ROBOT import UR_10E
 
 
 
