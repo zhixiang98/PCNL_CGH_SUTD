@@ -519,6 +519,12 @@ class Overview(tkinter.Frame):
 
     def update_info_frame_label(self):
         try:
+            self.X_US_COORDINATES.set(self.main_image.X_US_coordinates)
+            self.Y_US_COORDINATES.set(self.main_image.Y_US_coordinates)
+        except Exception as error:
+            print("No US distance data can be displayed", error)
+
+        try:
             self.ALPHA.set(self.main_image.Alpha)
         except Exception as error:
             print("No alpha data can be displayed", error)
@@ -538,6 +544,17 @@ class Overview(tkinter.Frame):
             self.MOVE_UR_ROBOT_BY.set(self.main_image.robot_move_value)
         except Exception as error:
             print("No UR_move_value can be displayed",error)
+
+        #temporary set.US_distance is used for pixel_distance for target
+        try:
+            self.X_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_pixel)
+        except Exception as error:
+            print("No pixel distance between target and origin can be displayed", error)
+
+        try:
+            self.Y_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_US)
+        except Exception as error:
+            print("No actual distance in m between target and origin can be displayed",error)
 
         self.after(self.delay, self.update_info_frame_label)
 
@@ -735,18 +752,18 @@ class Overview(tkinter.Frame):
         for commands in instructions:
             self.treeview.selection_set(commands.get("iid"))
             try:
-                valx = int(commands.get("command")[1])
+                valx = float(commands.get("command")[1])
                 print(valx)
             except Exception as error:
                 print("x value invalid!" + str(error))
                 pass
             try:
-                valy = int(commands.get("command")[2])
+                valy = float(commands.get("command")[2])
                 print(valy)
             except Exception as error:
                 print("y value invalid!" + str(error))
             try:
-                valz = int(commands.get("command")[3])
+                valz = float(commands.get("command")[3])
                 print(valz)
             except Exception as error:
                 print("z value invalid!" + str(error))
@@ -777,8 +794,8 @@ class Overview(tkinter.Frame):
 
                 except Exception as error:
                     print("CANNOT HOME Z_NEEDLE_DRIVER" + str(error))
+
             elif commands.get("command")[0] == "ND_MOVE_X":
-                # currently using the hacky way of jogging Z motor instead of positioning
                 try:
                     self.Needle_Driver.z_move_command(valx, "START")
                     self.Needle_Driver.wait_for_idle()
@@ -802,18 +819,25 @@ class Overview(tkinter.Frame):
 
             elif commands.get("command")[0] == "UR_MOVE_Z_UP":
                 self.Robot_Change_Mode(1)
+                # Mode 1 is move UR robot up z axis by 10mm
                 # thread_1 = threading.Thread(target=self.thread_wait, args=(10,))
                 # thread_1.start()
+                time.sleep(5)
 
             elif commands.get("command")[0] == "UR_MOVE_RELATIVE":
-                registers = [float(self.MOVE_UR_ROBOT_BY.get()), 0, 0, 0, 0, 0]
-                self.Update_Robot_Register(registers)
-                self.Robot_Send_Output()
+                move_value_by_in_mm = float(self.MOVE_UR_ROBOT_BY.get()/1000)
+                move_value_by_in_mm = round(move_value_by_in_mm,6)
+                move_value_by_in_mm = -move_value_by_in_mm
+                registers = [0, move_value_by_in_mm, 0, 0, 0, 0]
+                Result = self.Robot.list_to_setp(registers)
+                self.Robot.con.send(Result)
                 self.Robot_Change_Mode(2)
+                time.sleep(5)
 
             elif commands.get("command")[0] == "UR_MOVE_Z_DOWN":
-
+                # Mode 3 on Robot is the move down until detect force
                 self.Robot_Change_Mode(3)
+                time.sleep(5)
 
             # thread_1 = threading.Thread(target=self.thread_wait, args=(30,))
             # thread_1.start()

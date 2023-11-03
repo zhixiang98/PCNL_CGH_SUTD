@@ -81,8 +81,9 @@ class US_IMAGE():
         host depends on the IP address of the US machine. Ideally try to make this same as robot/ FT-Sensor
         port also depends on the dedicated port of the US machine
         """
-        self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
-        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
+        # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
+        self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
+        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.47", port=18944)
 
         # ----- image resolution received from the message. Resolution of the US machine (1432 x 740)
         self.imageSizeX = 1432
@@ -216,7 +217,9 @@ class US_IMAGE():
         """
         self.client.stop()  # stop connection first
         print("RECONNECTED_CLIENT")
-        self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
+        # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
+        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.10", port=23338)
+        self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
 
     def receive_image_message(self):
         """Receives message from server. Currently only receiving IMAGE messages
@@ -225,18 +228,21 @@ class US_IMAGE():
         ----------
         none currently """
 
-        # self.message = self.client.wait_for_message(device_name="USImage", timeout =5.0)
-        # # #
-        # # #used for igtl settings with US from CreativeMed
-        # self.img = self.message.image
-        # print(type(self.img))
-        # self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
-        # self.single_img = np.asarray(self.single_img)
+        self.message = self.client.wait_for_message(device_name="USImage", timeout =5.0)
+        #
+        # #used for igtl settings with US from CreativeMed
+        self.img = self.message.image
+        self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
+        self.single_img = np.asarray(self.single_img)
+        self.img = np.asarray(self.single_img)
+
 
         # self.img = Image.open("GUI/sample_image01.png").convert("RGB")
+        #
+        # self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
 
-        self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
-        self.img = np.asarray(self.img)
+        # self.img = self.img.convert("RGB")
+        # self.img = np.asarray(self.img)
 
     def show_live_image(self, img1=None, img2=None, img3=None, img4=None):
         """
@@ -493,6 +499,9 @@ class US_IMAGE():
             self.X_US_coordinates = (self.Target_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
             self.Y_US_coordinates = (self.Target_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
 
+            self.distance_target_pixel = math.sqrt((self.Target_Pixel_X - self.Origin_Pixel_X)**2 +(self.Target_Pixel_Y - self.Origin_Pixel_Y)**2)
+            self.distance_target_US = self.distance_target_pixel* self.mm_per_pixel
+
             self.gradient = (self.Needle_End_Pixel_Y - self.Needle_Start_Pixel_Y) / (
                     self.Needle_End_Pixel_X - self.Needle_Start_Pixel_X)
             self.intersect = self.Needle_End_Pixel_Y - (
@@ -504,13 +513,13 @@ class US_IMAGE():
             self.Surface_US_X = (self.Surface_Pixel_X - self.Origin_Pixel_X) * self.mm_per_pixel
             self.Surface_US_Y = (self.Surface_Pixel_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
 
-
             self.calculate_UR_robot_move()
 
             self.calculate_projected_needle_pixel()
 
         except Exception as e:
             print(e)
+
 
     def set_values(self, attributes, value):
         attributes = value

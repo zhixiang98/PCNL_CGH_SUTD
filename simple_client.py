@@ -15,64 +15,80 @@ from datetime import datetime
 import numpy as np
 
 
-directory = r"C:\Users\zhixi\Documents\PCNL_CGH_SUTD\Img_source_one"
+directory = r"C:\Users\Zhi Xiang\Desktop\pythonProject\PCNL_CGH_SUTD\Img_source_four"
 
 # cv2.namedWindow("test")
 # client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
 
-client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
+# client = pyigtl.OpenIGTLinkClient(host="192.168.1.9", port=18944)
+# client = pyigtl.OpenIGTLinkClient(host="192.168.1.47", port=18944)
 
 os.chdir(directory)
+
+
+client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
+
 
 imageSizeX, imageSizeY = 740 , 1432
 
 while True:
     curr_datetime = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
     file_name = curr_datetime +".png"
-    start_time = time.time()
-    message = client.wait_for_message("USImage", timeout=5.0)
+    # start_time = time.time()
+    response = input("letter")
+    if response == "a":
+        message = client.wait_for_message("USImage", timeout=10)
 
     # try:
     #     # print(message.image)
     # except:
     #     pass
-    print(time.time()-start_time)
-    img = message.image
-    print(message.image.shape)
-
-    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    # img = np.squeeze(message.image.reshape(1, imageSizeX, imageSizeY).transpose(0, 1, 2))
-    # img = Image.fromarray(img)
-    # img.save(file_name)
-
-
+    # print(time.time()-start_time)
     try:
+
+        print(message)
         img = message.image
         print(message.image.shape)
 
-    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = np.squeeze(img.reshape(1, imageSizeX, imageSizeY).transpose(0,1,2))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = np.squeeze(message.image.reshape(1, imageSizeX, imageSizeY).transpose(0, 1, 2))
         img = Image.fromarray(img)
         img.save(file_name)
-    except:
-        print("image not saved!")
-    try:
-        print("FPS: ", 1.0 / (time.time() - start_time))
-        # print(img.shape)
-    except:
-        pass
+        # time.sleep(10)
+    except Exception as error:
+        print(error)
+
+
+    # time.sleep(2)
+
+
     # try:
     #     img = message.image
-    #     img = Image.fromarray(img, 'RGB')
-    #     img.save(curr_datetime)
-    # except:
-    #     print("img not saved!")
-
-    # print("FPS: ", 1.0 / (time.time() - start_time))
-
-    # cv2.imshow("test", img)
+    #     print(message.image.shape)
     #
-    # # # print(message.image)
-    # if cv2.waitKey(1) == ord('q'):
-    #     cv2.destroyAllWindows()
-    #     break
+    # # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #     img = np.squeeze(img.reshape(1, imageSizeX, imageSizeY).transpose(0,1,2))
+    #     img = Image.fromarray(img)
+    #     img.save(file_name)
+    # except:
+    #     print("image not saved!")
+    # try:
+    #     print("FPS: ", 1.0 / (time.time() - start_time))
+    #     # print(img.shape)
+    # except:
+    #     pass
+    # # try:
+    # #     img = message.image
+    # #     img = Image.fromarray(img, 'RGB')
+    # #     img.save(curr_datetime)
+    # # except:
+    # #     print("img not saved!")
+    #
+    # # print("FPS: ", 1.0 / (time.time() - start_time))
+    #
+    # # cv2.imshow("test", img)
+    # #
+    # # # # print(message.image)
+    # # if cv2.waitKey(1) == ord('q'):
+    # #     cv2.destroyAllWindows()
+    # #     break
