@@ -82,8 +82,12 @@ class US_IMAGE():
         port also depends on the dedicated port of the US machine
         """
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
-        self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
-        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.47", port=18944)
+        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.57", port=23338)
+        self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.47", port=23338)
+
+        self.img_source_directory = None #location for placeholder image
+
+
 
         # ----- image resolution received from the message. Resolution of the US machine (1432 x 740)
         self.imageSizeX = 1432
@@ -215,11 +219,11 @@ class US_IMAGE():
         -------
 
         """
-        self.client.stop()  # stop connection first
-        print("RECONNECTED_CLIENT")
+        # Used for igl communication
+        # self.client.stop()  # stop connection first
+        # print("RECONNECTED_CLIENT")
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
-        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.10", port=23338)
-        self.client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
+        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.57", port=23338)
 
     def receive_image_message(self):
         """Receives message from server. Currently only receiving IMAGE messages
@@ -227,23 +231,27 @@ class US_IMAGE():
         Parameters
         ----------
         none currently """
-
-        self.message = self.client.wait_for_message(device_name="USImage", timeout =5.0)
         #
+        # self.message = self.client.wait_for_message(device_name="USImage", timeout =5.0)
+        # # #
         # #used for igtl settings with US from CreativeMed
-        self.img = self.message.image
-        self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
-        self.single_img = np.asarray(self.single_img)
-        self.img = np.asarray(self.single_img)
+        # self.img = self.message.image
+        # self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
+        # self.single_img = np.asarray(self.single_img)
+        # self.img = np.asarray(self.single_img)
 
 
         # self.img = Image.open("GUI/sample_image01.png").convert("RGB")
         #
         # self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
 
-        # self.img = self.img.convert("RGB")
-        # self.img = np.asarray(self.img)
+        self.img = Image.open("../Img_source_four/Depth13cm.png")
+        self.img = Image.open(self.img_source_directory)
+        self.img = self.img.convert("RGB")
+        self.img = np.asarray(self.img)
 
+        #uncomment this for opencv server testing
+        # self.img = np.array(self.img)
     def show_live_image(self, img1=None, img2=None, img3=None, img4=None):
         """
         Parse self.receive_image_message() that updates self.img
@@ -279,7 +287,7 @@ class US_IMAGE():
             # print("projected need pts are:")
             # print(self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_End_Pixel_X)
             cv2.line(self.labelled_img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
-                     (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (255, 255, 255), 3)
+                     (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (255, 255, 0), 3)
 
         if self.show_target_CB == True:
             cv2.circle(self.labelled_img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
@@ -531,13 +539,13 @@ class US_IMAGE():
         else:
             self.Alpha_in_radians = self.Alpha / 180 * math.pi
             x = (403.78 * math.sin(0.18444 * math.pi - self.Alpha_in_radians)) / (
-                math.sin(0.41411 * math.pi + self.Alpha_in_radians))
+                math.sin(0.41405 * math.pi + self.Alpha_in_radians))
             self.actuator_move_value = 170 - x
             self.x_distance = x
 
     def calculate_change_d(self):
         self.Alpha_in_radians = self.Alpha / 180 * math.pi
-        d = 63.80 * math.sin(0.21641 * math.pi + self.Alpha_in_radians) / math.sin(
+        d = 46.33 * math.sin( 0.1200* math.pi + self.Alpha_in_radians) / math.sin(
             (math.pi / 2) - self.Alpha_in_radians)
         self.d_distance = d
 

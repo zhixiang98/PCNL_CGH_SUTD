@@ -1,0 +1,6 @@
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
+INFO:rtde:RTDE disconnected
+INFO:rtde:RTDE synchronization started

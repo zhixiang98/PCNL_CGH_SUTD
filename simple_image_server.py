@@ -5,13 +5,13 @@ import numpy as np
 from math import sin
 import time
 # server = pyigtl.OpenIGTLinkServer(port=18944)
-server = pyigtl.OpenIGTLinkServer(port=18944, local_server=False)
+server = pyigtl.OpenIGTLinkServer(port=18944, local_server=True)
 # server = pyigtl.OpenIGTLinkServer(port=18944, local_server=False)
 
 
 image = cv2.VideoCapture(0)
-image.set(3,1080)
-image.set(4,720)
+image.set(3,360)
+image.set(4,240)
 
 timestep = 0
 while True:

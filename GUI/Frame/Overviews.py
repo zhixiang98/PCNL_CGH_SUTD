@@ -1,6 +1,7 @@
 
 import time
 import tkinter
+import tkinter.filedialog
 import GUI.Frame.constants as c
 import UR_Robot.UR_ROBOT
 import cv2
@@ -9,6 +10,11 @@ import threading
 from tkinter import ttk
 import US_Screen.US_Image
 import Needle_Driver.NeedleDriver_Controller as ND
+
+
+import os
+from datetime import datetime
+
 
 # from ...GUI.Frame import constants as c
 # from ...UR_Robot.UR_ROBOT import UR_ROBOT
@@ -20,6 +26,10 @@ class Overview(tkinter.Frame):
 
     def __init__(self, parent, cont):
         tkinter.Frame.__init__(self, parent)
+
+        self.save_image_directory = r"C:\Users\Zhi Xiang\Desktop\pythonProject\PCNL_CGH_SUTD\Img_source_four"
+        os.chdir(self.save_image_directory)
+
         self.main_image = None
         self.igtl_initialised = False
         # US_Screen.US_Image.US_IMAGE.__init__(self)
@@ -28,6 +38,7 @@ class Overview(tkinter.Frame):
         self.display = None
         self.cont = cont
         self.delay = c.REFRESH_DELAY
+        self.igtl_available = False
 
         # --- Tkinter Variables ---
         # """Tkinter Variables will be in CAPs"""
@@ -72,7 +83,7 @@ class Overview(tkinter.Frame):
                                        padx=c.PADX, pady=c.PADY)
 
         self.Alpha_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.ALPHA_BUTTON_TEXT,
-                                           command=lambda: self.calculate_target_ange(), width=c.BUTTON_WIDTH)
+                                           command=lambda: self.save_img_file_button(), width=c.BUTTON_WIDTH)
         self.Alpha_Button.grid(row=c.ALPHA_BUTTON_ROW, column=c.ALPHA_BUTTON_COLUMN, padx=c.PADX,
                                pady=c.PADY)
 
@@ -147,6 +158,9 @@ class Overview(tkinter.Frame):
         self.US_INFO_LABEL_FRAME = tkinter.LabelFrame(self, text="Ultrasound Information")
         self.US_INFO_LABEL_FRAME.place(x=c.US_INFO_FRAME_X, y=c.US_INFO_FRAME_Y, width=c.US_INFO_FRAME_WIDTH,
                                        height=c.US_INFO_FRAME_HEIGHT)
+
+        self.CONTROLLER_FRAME = tkinter.LabelFrame(self, text = "Controller Frame")
+        self.CONTROLLER_FRAME.place(x = c.CONTROLLER_FRAME_X, y = c.CONTROLLER_FRAME_Y, width = c.CONTROLLER_FRAME_WIDTH, height = c.CONTROLLER_FRAME_HEIGHT)
 
         tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_COORDINATES).grid(row=2, column=1)
         tkinter.Label(self.US_INFO_LABEL_FRAME, text="X US Coordinates: ").grid(row=1, column=1)
@@ -477,7 +491,9 @@ class Overview(tkinter.Frame):
         self.step = tkinter.Label(self.treeviewframe, text="Z_Value")
         self.step.grid(row=1, column=3)
 
-        self.commandentry = tkinter.Entry(self.treeviewframe, width=15)
+
+        self.commandentry = tkinter.ttk.Combobox(self.treeviewframe,values = c.COMMAND_COMBO_BOX, width=15)
+        # self.commandentry = tkinter.Entry(self.treeviewframe, width=15)
         self.commandentry.grid(row=2, column=0)
 
         self.treexentryx = tkinter.Entry(self.treeviewframe, width=15)
@@ -518,50 +534,53 @@ class Overview(tkinter.Frame):
         self.after(2, self.Update_Robot_Data)
 
     def update_info_frame_label(self):
-        try:
-            self.X_US_COORDINATES.set(self.main_image.X_US_coordinates)
-            self.Y_US_COORDINATES.set(self.main_image.Y_US_coordinates)
-        except Exception as error:
-            print("No US distance data can be displayed", error)
+        if self.igtl_initialised == True:
+            try:
+                self.X_US_COORDINATES.set(self.main_image.X_US_coordinates)
+                self.Y_US_COORDINATES.set(self.main_image.Y_US_coordinates)
+            except Exception as error:
+                print("No US distance data can be displayed", error)
 
-        try:
-            self.ALPHA.set(self.main_image.Alpha)
-        except Exception as error:
-            print("No alpha data can be displayed", error)
-        try:
-            self.OFFSET_X_DISTANCE.set(self.main_image.x_distance)
-        except Exception as error:
-            print("No x_distance_move data can be displayed",error)
-        try:
-            self.OFFSET_D_DISTANCE.set(self.main_image.d_distance)
-        except Exception as error:
-            print("No d_distance data can be displayed",error)
-        try:
-            self.MOVE_DISTANCE_ACTUATOR.set(self.main_image.actuator_move_value)
-        except Exception as error:
-            print("No actuator_move_value can be displayed", error)
-        try:
-            self.MOVE_UR_ROBOT_BY.set(self.main_image.robot_move_value)
-        except Exception as error:
-            print("No UR_move_value can be displayed",error)
+            try:
+                self.ALPHA.set(self.main_image.Alpha)
+            except Exception as error:
+                print("No alpha data can be displayed", error)
+            try:
+                self.OFFSET_X_DISTANCE.set(self.main_image.x_distance)
+            except Exception as error:
+                print("No x_distance_move data can be displayed",error)
+            try:
+                self.OFFSET_D_DISTANCE.set(self.main_image.d_distance)
+            except Exception as error:
+                print("No d_distance data can be displayed",error)
+            try:
+                self.MOVE_DISTANCE_ACTUATOR.set(self.main_image.actuator_move_value)
+            except Exception as error:
+                print("No actuator_move_value can be displayed", error)
+            try:
+                self.MOVE_UR_ROBOT_BY.set(self.main_image.robot_move_value)
+            except Exception as error:
+                print("No UR_move_value can be displayed",error)
 
-        #temporary set.US_distance is used for pixel_distance for target
-        try:
-            self.X_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_pixel)
-        except Exception as error:
-            print("No pixel distance between target and origin can be displayed", error)
+            #temporary set.US_distance is used for pixel_distance for target
+            try:
+                self.X_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_pixel)
+            except Exception as error:
+                print("No pixel distance between target and origin can be displayed", error)
 
-        try:
-            self.Y_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_US)
-        except Exception as error:
-            print("No actual distance in m between target and origin can be displayed",error)
-
+            try:
+                self.Y_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_US)
+            except Exception as error:
+                print("No actual distance in m between target and origin can be displayed",error)
+        else:
+            pass
         self.after(self.delay, self.update_info_frame_label)
 
 
     def update_canvas(self):
-        start_time = time.time()
+        if self.igtl_initialised == True:
 
+        # start_time = time.time()
         # if (self.main_image.clent.is_connected()) == False:
         #     print("CLIENT IS NOT CONNECTED")
         #     return
@@ -581,18 +600,19 @@ class Overview(tkinter.Frame):
         #     self.display = self.US_image.receive_image_message()
         #     self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.display))
         #     self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
-        try:
-            self.CheckCB()
-        except:
-            print("NONE OBJECT NO CB")
+            try:
+                self.CheckCB()
+            except:
+                print("NONE OBJECT NO CB")
 
-        try:
-            self.main_image.show_live_image()
-            self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.main_image.labelled_img))
-            self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
-        except Exception as error:
-            print("No image can be displayed", error)
-
+            try:
+                self.main_image.show_live_image()
+                self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.main_image.labelled_img))
+                self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
+            except Exception as error:
+                print("No image can be displayed", error)
+        else:
+            pass
         # try:
         #     self.display = self.img.show_original_image()
         #     self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.display))
@@ -664,17 +684,17 @@ class Overview(tkinter.Frame):
         self.treeview.insert('', 'end', values=("ND_MOVE_Y", 0.0, self.MOVE_DISTANCE_ACTUATOR.get(), 0.0))
 
         # send command to the UR to move up by a certain z (Mode1)
-        self.treeview.insert('', 'end', values=("UR_MOVE_Z_UP", 0.0, 0.0, 0.001))
+        self.treeview.insert('', 'end', values=("UR_MOVE_Z_UP", 0.0, 0.0, 10.0))
 
         # get the coordinates to move to in the US frame (Move relative,Mode2)
-        self.treeview.insert('', 'end', values=("UR_MOVE_RELATIVE", self.MOVE_UR_ROBOT_BY.get(), 0.0, 0.0))
+        self.treeview.insert('', 'end', values=("UR_MOVE_RELATIVE", 0.0, self.MOVE_UR_ROBOT_BY.get(), 0.0))
 
         # send the command to the UR to move to the US intended position by moving z down to the point(Mode3)
-        self.treeview.insert('', 'end', values=("UR_MOVE_Z_DOWN", 0.0, 0.0, -0.001))
+        self.treeview.insert('', 'end', values=("UR_MOVE_Z_DOWN", 0.0, 0.0, -10.0))
 
         # inject the needle by
         # send the commad to move Z needle down
-        self.treeview.insert('', 'end', values=("ND_MOVE_Z", 0.0, 0.0, 0.0))
+        self.treeview.insert('', 'end', values=("ND_MOVE_Z", 0.0, 0.0, 5.0))
 
         # self.treeview.insert('',end, values= )
 
@@ -719,8 +739,9 @@ class Overview(tkinter.Frame):
         # add entry
 
     def newentry(self):
+        ""
         if self.commandentry.get() == '' and self.treexentryx.get() == '' and self.treeyentry.get() == '' and self.stepentry.get() == '':
-            print('nothing!')
+            # print('nothing!')
             pass
         else:
             self.treeview.insert('', 'end', values=(
@@ -827,6 +848,7 @@ class Overview(tkinter.Frame):
             elif commands.get("command")[0] == "UR_MOVE_RELATIVE":
                 move_value_by_in_mm = float(self.MOVE_UR_ROBOT_BY.get()/1000)
                 move_value_by_in_mm = round(move_value_by_in_mm,6)
+                #currently need to put negative sign for move_value cause y coordinate of UR is inverse
                 move_value_by_in_mm = -move_value_by_in_mm
                 registers = [0, move_value_by_in_mm, 0, 0, 0, 0]
                 Result = self.Robot.list_to_setp(registers)
@@ -876,44 +898,58 @@ class Overview(tkinter.Frame):
             pass
 
     def connection_igtl_client(self):
-        if not self.igtl_initialised:
-            self.main_image = US_Screen.US_Image.US_IMAGE()
-            self.igtl_initialised = True
+        if self.igtl_available == True:
+            if not self.igtl_initialised:
+                self.main_image = US_Screen.US_Image.US_IMAGE()
+                self.igtl_initialised = True
+            else:
+                self.main_image.connect_igtl_client()
         else:
-
-            self.main_image.connect_igtl_client()
+            filename = tkinter.filedialog.askopenfilename(initialdir = "C:/Users/Zhi Xiang/Desktop/pythonProject/PCNL_CGH_SUTD/Img_source_four", title = "Open image")
+            if filename:
+                try:
+                    file = r"{}".format(filename)
+                    self.main_image = US_Screen.US_Image.US_IMAGE()
+                    self.main_image.img_source_directory = str(file)
+                    self.igtl_initialised = True
+                except Exception as error:
+                    print(error)
 
     def CheckCB(self):
-        """Function to check tkinter_CB elements updates main_image attributes after checked"""
-        if self.Show_Origin_CB_Var.get() == 1:
-            self.main_image.show_origin_CB = True
-        else:
-            self.main_image.show_origin_CB = False
+        if self.igtl_initialised == True:
 
-        if self.Show_Needle_CB_Line_Var.get() == 1:
-            self.main_image.show_needle_line_CB = True
-        else:
-            self.main_image.show_needle_line_CB = False
+            """Function to check tkinter_CB elements updates main_image attributes after checked"""
+            if self.Show_Origin_CB_Var.get() == 1:
+                self.main_image.show_origin_CB = True
+            else:
+                self.main_image.show_origin_CB = False
 
-        if self.Show_Projected_Line_CB_Var.get() == 1:
-            self.main_image.show_projected_needle_line_CB = True
-        else:
-            self.main_image.show_projected_needle_line_CB = False
+            if self.Show_Needle_CB_Line_Var.get() == 1:
+                self.main_image.show_needle_line_CB = True
+            else:
+                self.main_image.show_needle_line_CB = False
 
-        if self.Show_US_Coord_CB_Var.get() == 1:
-            self.main_image.show_US_coordinate_CB = True
-        else:
-            self.main_image.show_US_coordinate_CB = False
+            if self.Show_Projected_Line_CB_Var.get() == 1:
+                self.main_image.show_projected_needle_line_CB = True
+            else:
+                self.main_image.show_projected_needle_line_CB = False
 
-        if self.Show_Target_CB_Var.get() == 1:
-            self.main_image.show_target_CB = True
-        else:
-            self.main_image.show_target_CB = False
+            if self.Show_US_Coord_CB_Var.get() == 1:
+                self.main_image.show_US_coordinate_CB = True
+            else:
+                self.main_image.show_US_coordinate_CB = False
 
-        if self.Show_Stacked_Images_CB_Var.get() == 1:
-            self.main_image.show_stacked_images_CB = True
+            if self.Show_Target_CB_Var.get() == 1:
+                self.main_image.show_target_CB = True
+            else:
+                self.main_image.show_target_CB = False
+
+            if self.Show_Stacked_Images_CB_Var.get() == 1:
+                self.main_image.show_stacked_images_CB = True
+            else:
+                self.main_image.show_stacked_images_CB = False
         else:
-            self.main_image.show_stacked_images_CB = False
+            pass
     def needle_driver_toggle_button(self, key):
         """Function callback when button "X+,X-,Y+,Y-,Z+,Z-"is pressed. Configure buttons"""
 
@@ -1194,3 +1230,33 @@ class Overview(tkinter.Frame):
         Result = self.Robot.list_to_setp(LIST)
         self.Robot.con.send(Result)
         print("send successfully")
+
+
+    def save_img_file_button(self):
+        if self.Alpha_Button["relief"] == "raised":
+            self.Alpha_Button.config(relief='sunken')
+            self.Alpha_Button.config(bg = 'spring green')
+            self.save_image_file()
+
+        else:
+            self.Alpha_Button.config(relief='raised')
+            self.Alpha_Button.config(bg = 'SystemButtonFace')
+    def save_image_file(self):
+        # while self.Alpha_Button["relief"] == 'sunken':
+        curr_datetime = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        original_img_file_name = curr_datetime + "original_img.png"
+        labelled_img_file_name = curr_datetime + "labelled_img.png"
+        try:
+            original_saved_image = PIL.Image.fromarray(self.main_image.img)
+            original_saved_image.save(original_img_file_name)
+        except:
+            print("orignal image not saved")
+
+        try:
+            labelled_saved_image = PIL.Image.fromarray(self.main_image.labelled_img)
+            labelled_saved_image.save(labelled_img_file_name)
+        except:
+            print("labelled image not saved")
+
+        # else:
+        #     print("not saved")

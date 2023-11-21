@@ -26,7 +26,8 @@ directory = r"C:\Users\Zhi Xiang\Desktop\pythonProject\PCNL_CGH_SUTD\Img_source_
 os.chdir(directory)
 
 
-client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
+# client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
+client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
 
 
 imageSizeX, imageSizeY = 740 , 1432
@@ -49,6 +50,9 @@ while True:
         print(message)
         img = message.image
         print(message.image.shape)
+
+
+
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = np.squeeze(message.image.reshape(1, imageSizeX, imageSizeY).transpose(0, 1, 2))

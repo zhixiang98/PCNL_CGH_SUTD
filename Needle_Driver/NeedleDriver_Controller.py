@@ -110,6 +110,7 @@ class NeedleDriverController():
 
     def y_move_command(self,value, command):
         """y_move_command moves the y-axis needle driver to a specific value, whereby value is in terms unit of mm. command is either 'START' or 'STOP'
+        Absolute_move
 
         Parameters
         ----------
@@ -134,7 +135,7 @@ class NeedleDriverController():
 
     def z_move_command(self,value, command):
         """z_move_command moves the z-axis needle driver to a specific value, whereby value is in terms unit of mm. command is either 'START' or 'STOP'
-
+        Absolute move
         Parameters
         ----------
         value: in terms of unit mm, to move the needle driver to
