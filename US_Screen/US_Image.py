@@ -34,6 +34,9 @@ class US_IMAGE():
         self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y = 0, 0
         self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y = 0, 0
 
+        self.Intended_Needle_Start_Pixel_X, self.Intended_Needle_Start_Pixel_Y = 0, 0
+        self.Intended_Needle_End_Pixel_X, self.Intended_Needle_End_Pixel_Y = 0, 0
+
         # ---Ultrasound Coordinates---
         """
         Ultrasound Coordinates are ALL measured from the center contact of the US probe
@@ -55,6 +58,10 @@ class US_IMAGE():
         self.Projected_Needle_End_US_X, self.Projected_Needle_End_US_Y = 0, 0
 
         self.X_US_coordinates, self.Y_US_coordinates = 0, 0  # currently not in used. to be used for target/ mouse selection to show distance between point and origin
+
+        self.Intended_Needle_Start_US_X, self.Intended_Needle_Start_US_Y = 0,0
+        self.Intended_Needle_End_US_X, self.Intended_Needle_End_US_Y = 0 ,0
+
         # --- Important values---
         """
         Theta is the angle measured from the drawn needle line with the vertical axis
@@ -82,8 +89,7 @@ class US_IMAGE():
         port also depends on the dedicated port of the US machine
         """
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
-        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.57", port=23338)
-        self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.47", port=23338)
+        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.49", port=23338)
 
         self.img_source_directory = None #location for placeholder image
 
@@ -137,12 +143,17 @@ class US_IMAGE():
         self.show_US_coordinate_CB = False
         self.show_target_CB = False
         self.show_stacked_images_CB = False
+        self.show_intended_line_CB = False
 
         self.frame_two_freezed = False
         self.frame_four_freezed = False
 
         self.frame_two_freezed_captured = False
         self.frame_four_freezed_captured = False
+
+        self.image_detection_window = False
+        self.initialise_canvas = False
+        self.intialState = None
 
     def stackImages(self, scale, imgArray):
         """stackImages function allows for multiple image array to be displayed side by side. In a row x column square grid
@@ -223,7 +234,7 @@ class US_IMAGE():
         # self.client.stop()  # stop connection first
         # print("RECONNECTED_CLIENT")
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
-        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.57", port=23338)
+        # self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.49", port=23338)
 
     def receive_image_message(self):
         """Receives message from server. Currently only receiving IMAGE messages
@@ -233,8 +244,8 @@ class US_IMAGE():
         none currently """
         #
         # self.message = self.client.wait_for_message(device_name="USImage", timeout =5.0)
-        # # #
-        # #used for igtl settings with US from CreativeMed
+        # #
+        #used for igtl settings with US from CreativeMed
         # self.img = self.message.image
         # self.single_img = np.squeeze(self.img.reshape(1,self.imageSizeY, self.imageSizeX).transpose(0,1,2))
         # self.single_img = np.asarray(self.single_img)
@@ -289,6 +300,9 @@ class US_IMAGE():
             cv2.line(self.labelled_img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
                      (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (255, 255, 0), 3)
 
+        if self.show_intended_line_CB == True:
+            cv2.line(self.labelled_img, (self.Intended_Needle_Start_Pixel_X, self.Intended_Needle_Start_Pixel_Y), (self.Intended_Needle_End_Pixel_X, self.Intended_Needle_End_Pixel_Y),(255,0,255),3)
+
         if self.show_target_CB == True:
             cv2.circle(self.labelled_img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
                        thickness=-1)
@@ -321,7 +335,108 @@ class US_IMAGE():
         else:
             self.labelled_img = self.labelled_img
 
-        # self.show_live_image_stacked(self.img,self.img,self.img,self.img)
+        # #opens a new image detection cv window.... perform image detection stuff here
+        # if self.image_detection_window == True:
+        #     gray_frame = cv2.GaussianBlur(self.img, (21, 21), 0)
+        #     edited_frame = copy.deepcopy(self.img)
+        #     if self.initialise_canvas == False:
+        #         self.blank_canvas = np.zeros_like(self.gray_frame)
+        #         self.initialise_canvas = True
+        #
+        #     if self.initialState is None:
+        #         self.initialState = self.gray_frame
+        #         pass
+        #
+        #     differ_frame = cv2.absdiff(self.initialState, gray_frame)
+        #
+        #     # thresh_frame = differ_frame
+        #     thresh_frame = cv2.threshold(differ_frame, 30, 255, cv2.THRESH_BINARY)[1]
+        #
+        #     thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
+        #
+        #     # For the moving object in the frame finding the coutours
+        #
+        #     cont, _ = cv2.findContours(thresh_frame.copy(),
+        #
+        #                                cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        #     for cur in cont:
+        #
+        #         if cv2.contourArea(cur) < 50 or len(cont) > 3 or cv2.contourArea(cur) > 500:
+        #             continue
+        #
+        #         var_motion = 1
+        #
+        #         (cur_x, cur_y, cur_w, cur_h) = cv2.boundingRect(cur)
+        #
+        #         M = cv2.moments(cur)
+        #         cX = int(M["m10"] / M["m00"])
+        #         cY = int(M["m01"] / M["m00"])
+        #         print(cX, cY)
+        #         # inside_lst.append([cX,cY])
+        #
+        #         coord_list.append([cX, cY])
+        #         cv2.drawContours(edited_frame, [cur], -1, (0, 255, 0), 2)
+        #         cv2.circle(edited_frame, (cX, cY), 7, (255, 255, 255), -1)
+        #         # To create a rectangle of green color around the moving object
+        #
+        #         cv2.rectangle(edited_frame, (cur_x, cur_y), (cur_x + cur_w, cur_y + cur_h), (0, 255, 0), 3)
+        #
+        #         cv2.circle(blank_canvas, (cX, cY), 7, (255, 255, 0), -1)
+        #         # from the frame adding the motion status
+        #
+        #     # stack image
+        #     imgStack = stackImages(0.40, ([cur_frame, blank_canvas], [thresh_frame, edited_frame]))
+        #
+        #     final_image = blank_canvas
+        #     superimposed_pic = edited_frame
+        #     cv2.imshow("stack_img", imgStack)
+        #     # Creating a key to wait
+        #     wait_key = cv2.waitKey(1)
+        #
+        #     # With the help of the 'm' key ending the whole process of our system
+        #     initialState = None
+        #
+        #     if wait_key == ord('m'):
+        #         coord_list = []
+        #         initialise_canvas = False
+        #
+        #     if wait_key == ord('s'):
+        #         coord_array = np.array(coord_list)
+        #         [vx, vy, x0, y0] = cv2.fitLine(coord_array, cv2.DIST_L1, 0, 0.01, 0.01)
+        #
+        #         # print(vx, vy, x0, y0)
+        #         y_axis = np.array([0, 1])  # unit vector in the same direction as the x axis
+        #         your_line = np.array(vx[0], vy[0])  # unit vector in the same direction as your line
+        #         dot_product = np.dot(y_axis, your_line)
+        #         angle_2_y = np.arcsin(dot_product)
+        #         # print(angle_2_y)
+        #
+        #         angle_2_y_in_degree = (angle_2_y / math.pi * 180)
+        #         best_fit_angle = "_" + str(angle_2_y_in_degree[1]) + "_"
+        #         # Releasing the video
+        #
+        #         drawBestFitLine(vx[0], vy[0], x0[0], y0[0], blank_canvas)
+        #
+        #         print(best_fit_angle)
+        #
+        #         curr_datetime = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        #
+        #         img = Image.fromarray(final_image)
+        #         filename = curr_datetime + best_fit_angle + 'canvas_img.png'
+        #         img.save(filename)
+        #
+        #         drawBestFitLine(vx[0], vy[0], x0[0], y0[0], superimposed_pic)
+        #         img1 = Image.fromarray(superimposed_pic)
+        #         filename_img1 = curr_datetime + best_fit_angle + "super_imposed_img.png"
+        #         img1.save(filename_img1)
+        #
+        #         img2 = Image.fromarray(cur_frame)
+        #         filename_img2 = curr_datetime + best_fit_angle + "original_image.png"
+        #         img2.save(filename_img2)
+        #
+        # except Exception as error:
+        # print(error)
+
 
     def image_freeze_frame(self, frame_number):
         if frame_number == 2:
@@ -524,6 +639,8 @@ class US_IMAGE():
             self.calculate_UR_robot_move()
 
             self.calculate_projected_needle_pixel()
+            self.calculate_intended_needle_pixel()
+
 
         except Exception as e:
             print(e)
@@ -558,3 +675,15 @@ class US_IMAGE():
 
         self.Projected_Needle_Start_Pixel_Y = int(self.Needle_Start_Pixel_Y)
         self.Projected_Needle_End_Pixel_Y = int(self.Needle_End_Pixel_Y)
+
+    def calculate_intended_needle_pixel(self):
+        self.Intended_Needle_End_US_Y = 0
+        self.Intended_Needle_End_US_X = self.d_distance
+
+        self.Intended_Needle_End_Pixel_Y = int(self.Origin_Pixel_Y+self.Intended_Needle_End_US_Y/self.mm_per_pixel)
+        self.Intended_Needle_End_Pixel_X = int(self.Origin_Pixel_X +self.Intended_Needle_End_US_X/self.mm_per_pixel)
+
+        self.Intended_Needle_Start_Pixel_X = 0
+        self.Intended_Needle_Start_Pixel_Y = int(-self.Intended_Needle_End_Pixel_X*self.gradient)
+
+

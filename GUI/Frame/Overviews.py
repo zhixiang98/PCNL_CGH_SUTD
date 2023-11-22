@@ -123,6 +123,7 @@ class Overview(tkinter.Frame):
         self.Show_US_Coord_CB_Var = tkinter.IntVar()
         self.Show_Projected_Line_CB_Var = tkinter.IntVar()
         self.Show_Stacked_Images_CB_Var = tkinter.IntVar()
+        self.Show_Intended_Line_CB_Var = tkinter.IntVar()
 
         # --- CB tkinter ----
         self.show_projected_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_projected_line",
@@ -153,14 +154,23 @@ class Overview(tkinter.Frame):
 
         self.show_stacked_images_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text = "stacked_images", variable = self.Show_Stacked_Images_CB_Var, onvalue=1, offvalue=0)
         self.show_stacked_images_CB.grid(row = c.SHOW_STACKED_IMAGES_CB_ROW, column = c.SHOW_STACKED_IMAGES_CB_COLUMN, padx = 20)
+
+        self.show_intended_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text = "intended_line", variable = self.Show_Intended_Line_CB_Var, onvalue = 1, offvalue=0)
+        self.show_intended_line_CB.grid(row = c.SHOW_INTENDED_LINE_CB_ROW, column = c.SHOW_INTENDED_LINE_CB_COLUMN, padx = 20)
+
         # --------US_INFO_LABEL_FRAME--------------
 
         self.US_INFO_LABEL_FRAME = tkinter.LabelFrame(self, text="Ultrasound Information")
         self.US_INFO_LABEL_FRAME.place(x=c.US_INFO_FRAME_X, y=c.US_INFO_FRAME_Y, width=c.US_INFO_FRAME_WIDTH,
                                        height=c.US_INFO_FRAME_HEIGHT)
 
+        #----Controller Frame/Image identification------
         self.CONTROLLER_FRAME = tkinter.LabelFrame(self, text = "Controller Frame")
         self.CONTROLLER_FRAME.place(x = c.CONTROLLER_FRAME_X, y = c.CONTROLLER_FRAME_Y, width = c.CONTROLLER_FRAME_WIDTH, height = c.CONTROLLER_FRAME_HEIGHT)
+
+        self.IMAGE_DETECTION_BUTTON  =tkinter.Button(self.CONTROLLER_FRAME, text = "IMAGE_DETECT", command=lambda:self.image_detect_function())
+        self.IMAGE_DETECTION_BUTTON.grid(row=1, column = 1)
+
 
         tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_COORDINATES).grid(row=2, column=1)
         tkinter.Label(self.US_INFO_LABEL_FRAME, text="X US Coordinates: ").grid(row=1, column=1)
@@ -846,10 +856,11 @@ class Overview(tkinter.Frame):
                 time.sleep(5)
 
             elif commands.get("command")[0] == "UR_MOVE_RELATIVE":
-                move_value_by_in_mm = float(self.MOVE_UR_ROBOT_BY.get()/1000)
+                move_value_by_in_mm = float(valy/1000)
+                # move_value_by_in_mm = float(self.MOVE_UR_ROBOT_BY.get()/1000)
                 move_value_by_in_mm = round(move_value_by_in_mm,6)
                 #currently need to put negative sign for move_value cause y coordinate of UR is inverse
-                move_value_by_in_mm = -move_value_by_in_mm
+                # move_value_by_in_mm = -move_value_by_in_mm
                 registers = [0, move_value_by_in_mm, 0, 0, 0, 0]
                 Result = self.Robot.list_to_setp(registers)
                 self.Robot.con.send(Result)
@@ -933,6 +944,11 @@ class Overview(tkinter.Frame):
                 self.main_image.show_projected_needle_line_CB = True
             else:
                 self.main_image.show_projected_needle_line_CB = False
+
+            if self.Show_Intended_Line_CB_Var.get() == 1:
+                self.main_image.show_intended_line_CB  = True
+            else:
+                self.main_image.show_intended_line_CB = False
 
             if self.Show_US_Coord_CB_Var.get() == 1:
                 self.main_image.show_US_coordinate_CB = True
@@ -1260,3 +1276,19 @@ class Overview(tkinter.Frame):
 
         # else:
         #     print("not saved")
+
+    def image_detect_function(self):
+        if self.IMAGE_DETECTION_BUTTON["relief"]=="raised":
+            try:
+                self.main_image.image_detection_window = True
+                self.IMAGE_DETECTION_BUTTON.config(relief= "sunken")
+            except Exception as error:
+                print(error)
+        else:
+            self.main_image.image_detection_window = False
+            self.IMAGE_DETECTION_BUTTON.config(relief = "raised")
+
+
+
+
+
