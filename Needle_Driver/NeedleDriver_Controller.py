@@ -193,18 +193,33 @@ class NeedleDriverController():
         self.send_command(command_wr)
 
 
-    def wait_for_idle(self):
+    def wait_for_idle(self,axis):
         while True:
-            response = self.read_response()  # Replace this with your response reading logic
-            value = re.sub("[^0-9.]", "", response)  # Remove non-numeric characters
-            if value:
-                print("Current Value:", value)
-                if float(value) == 1:
-                    break  # Exit the loop if the target value is reached
-            time.sleep(0.5)  # Adjust the delay time as needed (e.g., 0.1 for 100 ms)
+            if (axis == "Y") or (axis == "X"):
+                response = self.read_response(axis)  # Replace this with your response reading logic
+                value = re.sub("[^0-9.]", "", response)  # Remove non-numeric characters
+                if value:
+                    print("Current Value:", value)
+                    if float(value) == 1:
+                        break  # Exit the loop if the target value is reached
+                time.sleep(0.5)  # Adjust the delay time as needed (e.g., 0.1 for 100 ms)
 
-    def read_response(self):
-        command_rd = "RD CR8501\r"
+
+    """Written  for z axis...  Using read the z-axis tkinter value to determine if target is reached.... should be a temporary solution... """
+    def wait_for_idle_z(self,target):
+        while True:
+            self.read_z_value()
+            value = self.Z_ND_Values
+            if value == target:
+                break
+    def read_response(self,axis):
+        if axis == "X":
+            command_rd = "RD CR8401\r"  # 8501 for y, 8601 for z,
+        elif axis == "Y":
+            command_rd = "RD CR8501\r" #8501 for y, 8601 for z,
+        elif axis == "Z":
+            command_rd = "RD C8601\r" #8501 for y, 8601 for z,
+
         with self.serial_lock:
             self.ser.write(command_rd.encode())
             response = self.ser.read(100)

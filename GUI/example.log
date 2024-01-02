@@ -20,3 +20,94 @@ INFO:rtde:RTDE synchronization started
 ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
 INFO:rtde:RTDE disconnected
 INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:rtde:RTDE synchronization started
+WARNING:rtde:no data received in last 1 seconds 
+INFO:rtde:RTDE synchronization started
+INFO:rtde:RTDE synchronization started
+INFO:rtde:RTDE synchronization started
+ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
+INFO:rtde:RTDE disconnected
+ERROR:rtde:Cannot send when RTDE synchronization is inactive
+ERROR:rtde:Cannot send when RTDE synchronization is inactive
+ERROR:rtde:Cannot send when RTDE synchronization is inactive
+ERROR:rtde:Cannot send when RTDE synchronization is inactive
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: timed out
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:rtde:RTDE synchronization started
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:rtde:RTDE synchronization started
+INFO:rtde:RTDE synchronization started
+INFO:rtde:RTDE synchronization started
+ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
+INFO:rtde:RTDE disconnected
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: timed out
+INFO:rtde:RTDE synchronization started
+ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
+INFO:rtde:RTDE disconnected
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: timed out
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: timed out
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: timed out
+ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
+INFO:rtde:RTDE disconnected
+INFO:rtde:RTDE synchronization started
+INFO:rtde:RTDE synchronization started
+ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
+INFO:rtde:RTDE disconnected
+INFO:rtde:RTDE synchronization started
+ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
+INFO:rtde:RTDE disconnected
+ERROR:rtde:Cannot send when RTDE synchronization is inactive
+ERROR:rtde:Cannot send when RTDE synchronization is inactive
+INFO:rtde:RTDE synchronization started
+ERROR:root:Error while receiving data: [WinError 10054] An existing connection was forcibly closed by the remote host
+ERROR:rtde:received 0 bytes from Controller, probable cause: Controller has stopped
+INFO:rtde:RTDE disconnected

@@ -10,8 +10,8 @@ server = pyigtl.OpenIGTLinkServer(port=18944, local_server=True)
 
 
 image = cv2.VideoCapture(0)
-image.set(3,360)
-image.set(4,240)
+# image.set(3,360)
+# image.set(4,240)
 
 timestep = 0
 while True:

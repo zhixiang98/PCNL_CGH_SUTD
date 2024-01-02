@@ -1,4 +1,3 @@
-
 import time
 import tkinter
 import tkinter.filedialog
@@ -10,7 +9,6 @@ import threading
 from tkinter import ttk
 import US_Screen.US_Image
 import Needle_Driver.NeedleDriver_Controller as ND
-
 
 import os
 from datetime import datetime
@@ -27,7 +25,7 @@ class Overview(tkinter.Frame):
     def __init__(self, parent, cont):
         tkinter.Frame.__init__(self, parent)
 
-        self.save_image_directory = r"C:\Users\Zhi Xiang\Desktop\pythonProject\PCNL_CGH_SUTD\Img_source_four"
+        self.save_image_directory = r"C:\Users\Zhi Xiang\Desktop\pythonProject\PCNL_CGH_SUTD\Image_Detection"
         os.chdir(self.save_image_directory)
 
         self.main_image = None
@@ -38,13 +36,14 @@ class Overview(tkinter.Frame):
         self.display = None
         self.cont = cont
         self.delay = c.REFRESH_DELAY
-        self.igtl_available = False
+        self.igtl_available = True
 
         # --- Tkinter Variables ---
         # """Tkinter Variables will be in CAPs"""
         self.MILIMTR_PER_PIXEL = tkinter.DoubleVar()
 
         self.X_US_COORDINATES, self.Y_US_COORDINATES = tkinter.DoubleVar(), tkinter.DoubleVar()
+        self.ERROR_CORRECTION_VALUE = tkinter.DoubleVar()
         self.ALPHA = tkinter.DoubleVar()
 
         self.X_US_SURFACE_TARGET_COORDINATES, self.Y_US_SURFACE_TARGET_COORDINATES = tkinter.DoubleVar(), tkinter.DoubleVar()
@@ -100,21 +99,24 @@ class Overview(tkinter.Frame):
         self.Convert_Pixel2Coordinates_Button.grid(row=c.CONVERT_PIXEL2COORDINATES_ROW,
                                                    column=c.CONVERT_PIXEL2COORDINATES_COLUMN, padx=c.PADX, pady=c.PADY)
 
-        self.Milimeter_Per_Pixel_Entry = tkinter.Entry(self.Image_Setting_Label_Frame,
-                                            textvariable=str(self.MILIMTR_PER_PIXEL))
-        self.Milimeter_Per_Pixel_Entry.grid(row=c.DEPTH_COMBO_BOX_ROW, column=c.DEPTH_COMBO_BOX_COLUMN, padx=c.PADX, pady=c.PADY)
+        self.Depth_ComboBox = tkinter.ttk.Combobox(self.Image_Setting_Label_Frame,
+                                                   values=[9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+        self.Depth_ComboBox.grid(row=c.DEPTH_COMBO_BOX_ROW, column=c.DEPTH_COMBO_BOX_COLUMN, padx=c.PADX, pady=c.PADY)
 
         self.Connect_IGTL_Button = tkinter.Button(self.Image_Setting_Label_Frame, text=c.RECONNECT_IMAGE_TEXT,
                                                   command=lambda: self.connection_igtl_client(), width=c.BUTTON_WIDTH)
         self.Connect_IGTL_Button.grid(row=c.CONNECT_IGT_BUTTON_ROW, column=c.CONNECT_IGT_BUTTON_COLUMN)
 
-        self.Image_Two_Screen_Freeze_Button = tkinter.Button(self.Image_Setting_Label_Frame, text = "IMG2 Freeze", command = lambda: self.freeze_frame(2), width = c.BUTTON_WIDTH)
-        self.Image_Two_Screen_Freeze_Button.grid(row = c.IMAGE_TWO_SCREEN_FREEZE_BUTTON_ROW, column = c.IMAGE_TWO_SCREEN_FREEZE_BUTTON_COLUMN)
+        self.Image_Two_Screen_Freeze_Button = tkinter.Button(self.Image_Setting_Label_Frame, text="IMG2 Freeze",
+                                                             command=lambda: self.freeze_frame(2), width=c.BUTTON_WIDTH)
+        self.Image_Two_Screen_Freeze_Button.grid(row=c.IMAGE_TWO_SCREEN_FREEZE_BUTTON_ROW,
+                                                 column=c.IMAGE_TWO_SCREEN_FREEZE_BUTTON_COLUMN)
 
         self.Image_Four_Screen_Freeze_Button = tkinter.Button(self.Image_Setting_Label_Frame, text="IMG4 Freeze",
-                                                             command=lambda: self.freeze_frame(4), width=c.BUTTON_WIDTH)
+                                                              command=lambda: self.freeze_frame(4),
+                                                              width=c.BUTTON_WIDTH)
         self.Image_Four_Screen_Freeze_Button.grid(row=c.IMAGE_FOUR_SCREEN_FREEZE_BUTTON_ROW,
-                                                 column=c.IMAGE_FOUR_SCREEN_FREEZE_BUTTON_COLUMN)
+                                                  column=c.IMAGE_FOUR_SCREEN_FREEZE_BUTTON_COLUMN)
 
         # --- CB tkinter variables---
         self.Show_Origin_CB_Var = tkinter.IntVar()
@@ -126,7 +128,7 @@ class Overview(tkinter.Frame):
         self.Show_Intended_Line_CB_Var = tkinter.IntVar()
 
         # --- CB tkinter ----
-        self.show_projected_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_projected_line",
+        self.show_projected_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_intended_line",
                                                           variable=self.Show_Projected_Line_CB_Var, onvalue=1,
                                                           offvalue=0)
         self.show_projected_line_CB.grid(row=c.SHOW_PROJECTED_LINE_CB_ROW, column=c.SHOW_PROJECTED_LINE_CB_COLUMN,
@@ -152,11 +154,15 @@ class Overview(tkinter.Frame):
                                                     onvalue=1, offvalue=0)
         self.show_US_Coord_CB.grid(row=c.SHOW_US_COORD_CB_ROW, column=c.SHOW_US_COORD_CB_COLUMN, padx=20)
 
-        self.show_stacked_images_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text = "stacked_images", variable = self.Show_Stacked_Images_CB_Var, onvalue=1, offvalue=0)
-        self.show_stacked_images_CB.grid(row = c.SHOW_STACKED_IMAGES_CB_ROW, column = c.SHOW_STACKED_IMAGES_CB_COLUMN, padx = 20)
+        self.show_stacked_images_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="stacked_images",
+                                                          variable=self.Show_Stacked_Images_CB_Var, onvalue=1,
+                                                          offvalue=0)
+        self.show_stacked_images_CB.grid(row=c.SHOW_STACKED_IMAGES_CB_ROW, column=c.SHOW_STACKED_IMAGES_CB_COLUMN,
+                                         padx=20)
 
-        self.show_intended_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text = "intended_line", variable = self.Show_Intended_Line_CB_Var, onvalue = 1, offvalue=0)
-        self.show_intended_line_CB.grid(row = c.SHOW_INTENDED_LINE_CB_ROW, column = c.SHOW_INTENDED_LINE_CB_COLUMN, padx = 20)
+        self.show_intended_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="projected_line",
+                                                         variable=self.Show_Intended_Line_CB_Var, onvalue=1, offvalue=0)
+        self.show_intended_line_CB.grid(row=c.SHOW_INTENDED_LINE_CB_ROW, column=c.SHOW_INTENDED_LINE_CB_COLUMN, padx=20)
 
         # --------US_INFO_LABEL_FRAME--------------
 
@@ -164,19 +170,29 @@ class Overview(tkinter.Frame):
         self.US_INFO_LABEL_FRAME.place(x=c.US_INFO_FRAME_X, y=c.US_INFO_FRAME_Y, width=c.US_INFO_FRAME_WIDTH,
                                        height=c.US_INFO_FRAME_HEIGHT)
 
-        #----Controller Frame/Image identification------
-        self.CONTROLLER_FRAME = tkinter.LabelFrame(self, text = "Controller Frame")
-        self.CONTROLLER_FRAME.place(x = c.CONTROLLER_FRAME_X, y = c.CONTROLLER_FRAME_Y, width = c.CONTROLLER_FRAME_WIDTH, height = c.CONTROLLER_FRAME_HEIGHT)
+        # ----Controller Frame/Image identification------
+        self.CONTROLLER_FRAME = tkinter.LabelFrame(self, text="Controller Frame")
+        self.CONTROLLER_FRAME.place(x=c.CONTROLLER_FRAME_X, y=c.CONTROLLER_FRAME_Y, width=c.CONTROLLER_FRAME_WIDTH,
+                                    height=c.CONTROLLER_FRAME_HEIGHT)
 
-        self.IMAGE_DETECTION_BUTTON  =tkinter.Button(self.CONTROLLER_FRAME, text = "IMAGE_DETECT", command=lambda:self.image_detect_function())
-        self.IMAGE_DETECTION_BUTTON.grid(row=1, column = 1)
+        self.IMAGE_DETECTION_BUTTON = tkinter.Button(self.CONTROLLER_FRAME, text="IMAGE_DETECT",
+                                                     command=lambda: self.image_detect_function())
+        self.IMAGE_DETECTION_BUTTON.grid(row=1, column=1)
 
+        self.IMAGE_DETECTION_CONTROLLER_BUTTON = tkinter.Button(self.CONTROLLER_FRAME, text="IMAGE_DETECT_CONTROLLER",
+                                                                command=lambda: self.image_detect_controller())
+        self.IMAGE_DETECTION_CONTROLLER_BUTTON.grid(row=1, column=2)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_COORDINATES).grid(row=2, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="X US Coordinates: ").grid(row=1, column=1)
+        # Not used for the current instance
+        # tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.X_US_COORDINATES).grid(row=2, column=1)
+        # tkinter.Label(self.US_INFO_LABEL_FRAME, text="X US Coordinates: ").grid(row=1, column=1)
 
-        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Y US Coordinates: ").grid(row=3, column=1)
-        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.Y_US_COORDINATES).grid(row=4, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.ERROR_CORRECTION_VALUE).grid(row=2, column=1)
+        tkinter.Label(self.US_INFO_LABEL_FRAME, text="Error Correction(mm): ").grid(row=1, column=1)
+
+        # Not used for current instance
+        # tkinter.Label(self.US_INFO_LABEL_FRAME, text="Y US Coordinates: ").grid(row=3, column=1)
+        # tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.Y_US_COORDINATES).grid(row=4, column=1)
 
         tkinter.Label(self.US_INFO_LABEL_FRAME, text="ALPHA: ").grid(row=5, column=1)
         tkinter.Label(self.US_INFO_LABEL_FRAME, textvariable=self.ALPHA).grid(row=6, column=1)
@@ -501,8 +517,7 @@ class Overview(tkinter.Frame):
         self.step = tkinter.Label(self.treeviewframe, text="Z_Value")
         self.step.grid(row=1, column=3)
 
-
-        self.commandentry = tkinter.ttk.Combobox(self.treeviewframe,values = c.COMMAND_COMBO_BOX, width=15)
+        self.commandentry = tkinter.ttk.Combobox(self.treeviewframe, values=c.COMMAND_COMBO_BOX, width=15)
         # self.commandentry = tkinter.Entry(self.treeviewframe, width=15)
         self.commandentry.grid(row=2, column=0)
 
@@ -519,6 +534,7 @@ class Overview(tkinter.Frame):
 
         self.update_canvas()
         self.update_info_frame_label()
+
     def Update_Robot_Data(self):
         """Update_Robot_Data updates the register from the robot side to the computer side"""
 
@@ -545,11 +561,15 @@ class Overview(tkinter.Frame):
 
     def update_info_frame_label(self):
         if self.igtl_initialised == True:
+            # try:
+            #     self.X_US_COORDINATES.set(self.main_image.X_US_coordinates)
+            #     self.Y_US_COORDINATES.set(self.main_image.Y_US_coordinates)
+            # except Exception as error:
+            #     print("No US distance data can be displayed", error)
             try:
-                self.X_US_COORDINATES.set(self.main_image.X_US_coordinates)
-                self.Y_US_COORDINATES.set(self.main_image.Y_US_coordinates)
+                self.ERROR_CORRECTION_VALUE.set(self.main_image.error_correction_value)
             except Exception as error:
-                print("No US distance data can be displayed", error)
+                print("No Error Correction Value can be calculated!", error)
 
             try:
                 self.ALPHA.set(self.main_image.Alpha)
@@ -558,11 +578,11 @@ class Overview(tkinter.Frame):
             try:
                 self.OFFSET_X_DISTANCE.set(self.main_image.x_distance)
             except Exception as error:
-                print("No x_distance_move data can be displayed",error)
+                print("No x_distance_move data can be displayed", error)
             try:
                 self.OFFSET_D_DISTANCE.set(self.main_image.d_distance)
             except Exception as error:
-                print("No d_distance data can be displayed",error)
+                print("No d_distance data can be displayed", error)
             try:
                 self.MOVE_DISTANCE_ACTUATOR.set(self.main_image.actuator_move_value)
             except Exception as error:
@@ -570,46 +590,45 @@ class Overview(tkinter.Frame):
             try:
                 self.MOVE_UR_ROBOT_BY.set(self.main_image.robot_move_value)
             except Exception as error:
-                print("No UR_move_value can be displayed",error)
+                print("No UR_move_value can be displayed", error)
 
-            #temporary set.US_distance is used for pixel_distance for target
-            try:
-                self.X_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_pixel)
-            except Exception as error:
-                print("No pixel distance between target and origin can be displayed", error)
-
-            try:
-                self.Y_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_US)
-            except Exception as error:
-                print("No actual distance in m between target and origin can be displayed",error)
+            # temporary set.US_distance is used for pixel_distance for target
+            # try:
+            #     self.X_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_pixel)
+            # except Exception as error:
+            #     print("No pixel distance between target and origin can be displayed", error)
+            #
+            # try:
+            #     self.Y_US_SURFACE_TARGET_COORDINATES.set(self.main_image.distance_target_US)
+            # except Exception as error:
+            #     print("No actual distance in m between target and origin can be displayed",error)
         else:
             pass
         self.after(self.delay, self.update_info_frame_label)
 
-
     def update_canvas(self):
         if self.igtl_initialised == True:
 
-        # start_time = time.time()
-        # if (self.main_image.clent.is_connected()) == False:
-        #     print("CLIENT IS NOT CONNECTED")
-        #     return
+            # start_time = time.time()
+            # if (self.main_image.clent.is_connected()) == False:
+            #     print("CLIENT IS NOT CONNECTED")
+            #     return
 
-        # try:
-        #     self.img = self.cont.show_original()
-        #     # self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
-        #     self.img = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.img))
-        #     self.Canvas.create_image(0, 0, image=self.img, anchor="nw")
-        #
-        # except:
-        #     print("No Image")
-        #     pass
+            # try:
+            #     self.img = self.cont.show_original()
+            #     # self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
+            #     self.img = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.img))
+            #     self.Canvas.create_image(0, 0, image=self.img, anchor="nw")
+            #
+            # except:
+            #     print("No Image")
+            #     pass
 
-        # if self.US_image != None:
-        #     # self.display = self.US_image.show_original_image()
-        #     self.display = self.US_image.receive_image_message()
-        #     self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.display))
-        #     self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
+            # if self.US_image != None:
+            #     # self.display = self.US_image.show_original_image()
+            #     self.display = self.US_image.receive_image_message()
+            #     self.display = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.display))
+            #     self.Canvas.create_image(0, 0, image=self.display, anchor="nw")
             try:
                 self.CheckCB()
             except:
@@ -650,11 +669,11 @@ class Overview(tkinter.Frame):
             try:
                 self.main_image.image_freeze_frame(2)
                 if self.main_image.frame_two_freezed == True:
-                    self.Image_Two_Screen_Freeze_Button.config(relief = 'sunken')
-                    self.Image_Two_Screen_Freeze_Button.config(bg = 'spring green')
+                    self.Image_Two_Screen_Freeze_Button.config(relief='sunken')
+                    self.Image_Two_Screen_Freeze_Button.config(bg='spring green')
                 else:
-                    self.Image_Two_Screen_Freeze_Button.config(relief = 'raised')
-                    self.Image_Two_Screen_Freeze_Button.config(bg = 'SystemButtonFace')
+                    self.Image_Two_Screen_Freeze_Button.config(relief='raised')
+                    self.Image_Two_Screen_Freeze_Button.config(bg='SystemButtonFace')
             except Exception as error:
                 print("No image to freeze 02")
 
@@ -662,17 +681,14 @@ class Overview(tkinter.Frame):
             try:
                 self.main_image.image_freeze_frame(4)
                 if self.main_image.frame_four_freezed == True:
-                    self.Image_Four_Screen_Freeze_Button.config(relief = 'sunken')
-                    self.Image_Four_Screen_Freeze_Button.config(bg = 'spring green')
+                    self.Image_Four_Screen_Freeze_Button.config(relief='sunken')
+                    self.Image_Four_Screen_Freeze_Button.config(bg='spring green')
                 else:
-                    self.Image_Four_Screen_Freeze_Button.config(relief = 'raised')
-                    self.Image_Four_Screen_Freeze_Button.config(bg = 'SystemButtonFace')
+                    self.Image_Four_Screen_Freeze_Button.config(relief='raised')
+                    self.Image_Four_Screen_Freeze_Button.config(bg='SystemButtonFace')
 
             except Exception as error:
                 print("No image to freeze 04")
-
-
-
 
     def Delete_Entry(self):
         self.commandentry.delete(0, 'end')
@@ -684,27 +700,27 @@ class Overview(tkinter.Frame):
         # clear all
         self.treeview.delete(*self.treeview.get_children())
 
-        # send the command to home position of the ND y-axis
-        self.treeview.insert('', 'end', values=("ND_HOME_Y", 0.0, 0.0, 0.0))
-
-        # send the command to home position of the ND z-axis
-        self.treeview.insert('', 'end', values=("ND_HOME_Z", 0.0, 0.0, 0.0))
-
-        # move the y-axis to the intended needle path
-        self.treeview.insert('', 'end', values=("ND_MOVE_Y", 0.0, self.MOVE_DISTANCE_ACTUATOR.get(), 0.0))
-
         # send command to the UR to move up by a certain z (Mode1)
-        self.treeview.insert('', 'end', values=("UR_MOVE_Z_UP", 0.0, 0.0, 10.0))
+        self.treeview.insert('', 'end', values=("UR_MOVE_Z_UP", 0.0, 0.0, 20.0))
 
         # get the coordinates to move to in the US frame (Move relative,Mode2)
         self.treeview.insert('', 'end', values=("UR_MOVE_RELATIVE", 0.0, self.MOVE_UR_ROBOT_BY.get(), 0.0))
 
         # send the command to the UR to move to the US intended position by moving z down to the point(Mode3)
-        self.treeview.insert('', 'end', values=("UR_MOVE_Z_DOWN", 0.0, 0.0, -10.0))
+        self.treeview.insert('', 'end', values=("UR_MOVE_Z_DOWN", 0.0, 0.0, -20.0))
+
+        # send the command to home position of the ND y-axis
+        # self.treeview.insert('', 'end', values=("ND_HOME_Y", 0.0, 0.0, 0.0))
+
+        # send the command to home position of the ND z-axis
+        # self.treeview.insert('', 'end', values=("ND_HOME_Z", 0.0, 0.0, 0.0))
+
+        # move the y-axis to the intended needle path
+        self.treeview.insert('', 'end', values=("ND_MOVE_Y", 0.0, self.MOVE_DISTANCE_ACTUATOR.get(), 0.0))
 
         # inject the needle by
         # send the commad to move Z needle down
-        self.treeview.insert('', 'end', values=("ND_MOVE_Z", 0.0, 0.0, 5.0))
+        self.treeview.insert('', 'end', values=("ND_MOVE_Z", 0.0, 0.0, 75.0))
 
         # self.treeview.insert('',end, values= )
 
@@ -803,14 +819,14 @@ class Overview(tkinter.Frame):
             if commands.get("command")[0] == "ND_HOME_X":
                 try:
                     self.Needle_Driver.send_needle_driver_home_command("X", "START")
-                    self.Needle_Driver.wait_for_idle()
+                    self.Needle_Driver.wait_for_idle("X")
                     # time.sleep(10)
                 except Exception as error:
                     print("CANNOT HOME X_NEEDLE_DRIVER" + str(error))
             elif commands.get("command")[0] == "ND_HOME_Y":
                 try:
                     self.Needle_Driver.send_needle_driver_home_command("Y", "START")
-                    self.Needle_Driver.wait_for_idle()
+                    self.Needle_Driver.wait_for_idle("Y")
 
                     # self.Needle_Driver.send_needle_driver_home_command("Y", "STOP")
 
@@ -819,7 +835,7 @@ class Overview(tkinter.Frame):
             elif commands.get("command")[0] == "ND_HOME_Z":
                 try:
                     self.Needle_Driver.send_needle_driver_home_command("Z", "START")
-                    self.Needle_Driver.wait_for_idle()
+                    self.Needle_Driver.wait_for_idle_z(0)
 
                     # self.Needle_Driver.send_needle_driver_home_command("Z", "STOP")
 
@@ -829,22 +845,21 @@ class Overview(tkinter.Frame):
             elif commands.get("command")[0] == "ND_MOVE_X":
                 try:
                     self.Needle_Driver.z_move_command(valx, "START")
-                    self.Needle_Driver.wait_for_idle()
+                    self.Needle_Driver.wait_for_idle("X")
                 except:
                     print("CANNOT MOVE TO REQUIRED X VALUE")
 
             elif commands.get("command")[0] == "ND_MOVE_Y":
                 try:
-                    self.Needle_Driver.y_move_command(valy,"START")
-                    self.Needle_Driver.wait_for_idle()
+                    self.Needle_Driver.y_move_command(valy, "START")
+                    self.Needle_Driver.wait_for_idle("Y")
                     # time.sleep(10)
                 except Exception as error:
                     print("CANNOT MOVE TO REQUIRED Y VALUE" + str(error))
             elif commands.get("command")[0] == "ND_MOVE_Z":
-                # currently using the hacky way of jogging Z motor instead of positioning
                 try:
                     self.Needle_Driver.z_move_command(valz, "START")
-                    self.Needle_Driver.wait_for_idle()
+                    self.Needle_Driver.wait_for_idle_z(valz)
                 except Exception as error:
                     print("CANNOT MOVE TO REQUIRED Z VALUE" + str(error))
 
@@ -856,10 +871,10 @@ class Overview(tkinter.Frame):
                 time.sleep(5)
 
             elif commands.get("command")[0] == "UR_MOVE_RELATIVE":
-                move_value_by_in_mm = float(valy/1000)
+                move_value_by_in_mm = float(valy / 1000)
                 # move_value_by_in_mm = float(self.MOVE_UR_ROBOT_BY.get()/1000)
-                move_value_by_in_mm = round(move_value_by_in_mm,6)
-                #currently need to put negative sign for move_value cause y coordinate of UR is inverse
+                move_value_by_in_mm = round(move_value_by_in_mm, 6)
+                # currently need to put negative sign for move_value cause y coordinate of UR is inverse
                 # move_value_by_in_mm = -move_value_by_in_mm
                 registers = [0, move_value_by_in_mm, 0, 0, 0, 0]
                 Result = self.Robot.list_to_setp(registers)
@@ -883,7 +898,6 @@ class Overview(tkinter.Frame):
             #         self.Robot_Change_Mode(self, 2)
             #     except:
             #         print("FAILED TO CHANGE MODE TO 2")
-
 
             print("NEXT COMMAND")
 
@@ -916,7 +930,8 @@ class Overview(tkinter.Frame):
             else:
                 self.main_image.connect_igtl_client()
         else:
-            filename = tkinter.filedialog.askopenfilename(initialdir = "C:/Users/Zhi Xiang/Desktop/pythonProject/PCNL_CGH_SUTD/Img_source_four", title = "Open image")
+            filename = tkinter.filedialog.askopenfilename(
+                initialdir="C:/Users/Zhi Xiang/Desktop/pythonProject/PCNL_CGH_SUTD/Img_source_four", title="Open image")
             if filename:
                 try:
                     file = r"{}".format(filename)
@@ -946,7 +961,7 @@ class Overview(tkinter.Frame):
                 self.main_image.show_projected_needle_line_CB = False
 
             if self.Show_Intended_Line_CB_Var.get() == 1:
-                self.main_image.show_intended_line_CB  = True
+                self.main_image.show_intended_line_CB = True
             else:
                 self.main_image.show_intended_line_CB = False
 
@@ -964,8 +979,17 @@ class Overview(tkinter.Frame):
                 self.main_image.show_stacked_images_CB = True
             else:
                 self.main_image.show_stacked_images_CB = False
+
+            """Function to check depth and update accordingly"""
+            if self.Depth_ComboBox.get() is not None:
+                self.MILIMTR_PER_PIXEL.set(
+                    int(self.Depth_ComboBox.get()) * c.MM_PER_PIXEL_GRADIENT + c.MM_PER_PIXEL_Y_INTERCEPT)
+                self.main_image.depth = int(
+                    self.Depth_ComboBox.get())  # update self.main_image.depth so the DoubleClick can place the origin at the fixed coordinate
+                self.main_image.mm_per_pixel = float(self.MILIMTR_PER_PIXEL.get())
         else:
             pass
+
     def needle_driver_toggle_button(self, key):
         """Function callback when button "X+,X-,Y+,Y-,Z+,Z-"is pressed. Configure buttons"""
 
@@ -1186,19 +1210,19 @@ class Overview(tkinter.Frame):
         if axis == "X":
             try:
                 value = self.X_NEEDLE_ENTRY_BOX.get()
-                self.Needle_Driver.x_move_command(value,"START")
+                self.Needle_Driver.x_move_command(value, "START")
             except AttributeError as e:
                 print("ERROR: " + str(e))
         if axis == "Y":
             try:
                 value = self.Y_NEEDLE_ENTRY_BOX.get()
-                self.Needle_Driver.y_move_command(value,"START")
+                self.Needle_Driver.y_move_command(value, "START")
             except AttributeError as e:
                 print("ERROR: " + str(e))
         if axis == "Z":
             try:
                 value = self.Z_NEEDLE_ENTRY_BOX.get()
-                self.Needle_Driver.z_move_command(value,"START")
+                self.Needle_Driver.z_move_command(value, "START")
             except AttributeError as e:
                 print("ERROR: " + str(e))
 
@@ -1212,7 +1236,6 @@ class Overview(tkinter.Frame):
 
     def convert_pixel_to_US_coord(self):
         try:
-            self.main_image.mm_per_pixel = float(self.MILIMTR_PER_PIXEL.get())
             self.main_image.Convert_Pixel_to_US_Coord()
         except AttributeError as e:
             print("ERROR: " + str(e))
@@ -1247,16 +1270,16 @@ class Overview(tkinter.Frame):
         self.Robot.con.send(Result)
         print("send successfully")
 
-
     def save_img_file_button(self):
         if self.Alpha_Button["relief"] == "raised":
             self.Alpha_Button.config(relief='sunken')
-            self.Alpha_Button.config(bg = 'spring green')
+            self.Alpha_Button.config(bg='spring green')
             self.save_image_file()
 
         else:
             self.Alpha_Button.config(relief='raised')
-            self.Alpha_Button.config(bg = 'SystemButtonFace')
+            self.Alpha_Button.config(bg='SystemButtonFace')
+
     def save_image_file(self):
         # while self.Alpha_Button["relief"] == 'sunken':
         curr_datetime = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
@@ -1278,17 +1301,25 @@ class Overview(tkinter.Frame):
         #     print("not saved")
 
     def image_detect_function(self):
-        if self.IMAGE_DETECTION_BUTTON["relief"]=="raised":
+        if self.IMAGE_DETECTION_BUTTON["relief"] == "raised":
             try:
-                self.main_image.image_detection_window = True
-                self.IMAGE_DETECTION_BUTTON.config(relief= "sunken")
+                self.main_image.show_image_detection_window = True
+                self.main_image.kill_image_detection_window = False
+                self.IMAGE_DETECTION_BUTTON.config(relief="sunken")
             except Exception as error:
                 print(error)
         else:
-            self.main_image.image_detection_window = False
-            self.IMAGE_DETECTION_BUTTON.config(relief = "raised")
+            self.main_image.show_image_detection_window = False
+            self.IMAGE_DETECTION_BUTTON.config(relief="raised")
 
-
-
-
-
+    def image_detect_controller(self):
+        if self.IMAGE_DETECTION_CONTROLLER_BUTTON["relief"] == "raised":
+            try:
+                self.main_image.show_image_detection_controller_window = True
+                self.main_image.kill_image_detection_controller_window = False
+                self.IMAGE_DETECTION_CONTROLLER_BUTTON.config(relief="sunken")
+            except Exception as error:
+                print(error)
+        else:
+            self.main_image.show_image_detection_controller_window = False
+            self.IMAGE_DETECTION_CONTROLLER_BUTTON.config(relief="raised")

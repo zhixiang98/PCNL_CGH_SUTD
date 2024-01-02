@@ -21,13 +21,13 @@ directory = r"C:\Users\Zhi Xiang\Desktop\pythonProject\PCNL_CGH_SUTD\Img_source_
 # client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
 
 # client = pyigtl.OpenIGTLinkClient(host="192.168.1.9", port=18944)
-# client = pyigtl.OpenIGTLinkClient(host="192.168.1.47", port=18944)
+client = pyigtl.OpenIGTLinkClient(host="192.168.1.47", port=23338)
 
 os.chdir(directory)
 
 
 # client = pyigtl.OpenIGTLinkClient(host="192.168.0.106", port=23338)
-client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
+# client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
 
 
 imageSizeX, imageSizeY = 740 , 1432
