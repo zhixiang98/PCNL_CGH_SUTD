@@ -8,7 +8,7 @@ import math
 
 
 class US_IMAGE():
-    def __init__(self):
+    def __init__(self,igtl_status):
         # ---Pixel Coordinates---
         """
         Origin_Pixel_X, Origin_Pixel_Y are pixel coordinates  of the clicked origin from self.select_origin(). Measured from the image using CV2 coordinates
@@ -36,6 +36,7 @@ class US_IMAGE():
 
         self.Intended_Needle_Start_Pixel_X, self.Intended_Needle_Start_Pixel_Y = 0, 0
         self.Intended_Needle_End_Pixel_X, self.Intended_Needle_End_Pixel_Y = 0, 0
+
 
         # ---Ultrasound Coordinates---
         """
@@ -69,7 +70,7 @@ class US_IMAGE():
         x_distance is the fixed distance measured from the fixed point of the actuator to the needle
         d_distance is the horizontal distance measured from the probe to the needle 
         """
-
+        self.igtl_available = igtl_status
         self.Theta = 0
         self.Alpha = 0
         self.Alpha_in_radians = self.Alpha / 180 * math.pi
@@ -82,6 +83,8 @@ class US_IMAGE():
         self.intersect = 0
 
         self.mm_per_pixel = 0  # mm per pixel provided by the US
+        self.RCM_US_distance_x_mm = 0
+        self.RCM_US_distance_y_mm = 0
 
         # ---- igtl configuration ---------
         """
@@ -89,7 +92,9 @@ class US_IMAGE():
         port also depends on the dedicated port of the US machine
         """
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
-        self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.49", port=23338)
+        if self.igtl_available == True:
+
+            self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.49", port=23338)
 
         self.img_source_directory = None  # location for placeholder image
 
@@ -133,6 +138,8 @@ class US_IMAGE():
         self.draw_needle_line_selected = False
         self.target_selected = False
         self.stacked_images_selected = False
+        self.draw_RCM_01_bool = False  #Iniialise draw_RCM_01_line
+        self.draw_RCM_02_bool = False #Initialise draw RCM_02_line
 
         # -----CheckBoxes-----------
         self.show_origin_CB = False
@@ -142,6 +149,7 @@ class US_IMAGE():
         self.show_target_CB = False
         self.show_stacked_images_CB = False
         self.show_intended_line_CB = False
+        self.show_RCM_CB = False
 
         self.frame_two_freezed = False
         self.frame_four_freezed = False
@@ -173,6 +181,30 @@ class US_IMAGE():
         self.tol_y = 20
         self.initialise = False
 
+        self.draw_RCM01_img = None
+        self.draw_RCM02_img = None
+        self.cache4_img = None #draw RCM_cache_img
+        self.cache5_img = None
+
+        self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = 0,0
+        self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = 0, 0
+        self.RCM_02_START_PIXEL_X, self.RCM_02_START_PIXEL_Y = 0, 0
+        self.RCM_02_END_PIXEL_X, self.RCM_02_END_PIXEL_Y = 0, 0
+
+        self.gradient_RCM_01 = 0
+        self.gradient_RCM_02 = 0
+
+        self.intersect_RCM_01 = 0
+        self.intersect_RCM_02 = 0
+
+        self.RCM_PIXEL_X = 0
+        self.RCM_PIXEL_Y = 0
+
+        self.Overwrite_RCM_X_Entry_Value = 0
+        self.Overwrite_RCM_Y_Entry_Value = 0
+
+        self.box = None
+        self.box_projected = None
     def calculateBestFitLine(self, vx, vy, x0, y0):
         """Return the best fit line, value in the terms of tupple (x_pt1, y_pt1), (x_pt2, y_pt2)"""
         x_pt1 = 0
@@ -259,10 +291,13 @@ class US_IMAGE():
 
         """
         # Used for igl communication
-        self.client.stop()  # stop connection first
-        print("RECONNECTED_CLIENT")
+        # self.client.stop()  # stop connection first
+        if self.igtl_available == True:
+            print("RECONNECTED_CLIENT")
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
-        self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.49", port=23338)
+            self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.49", port=23338)
+        else:
+            pass
 
     def receive_image_message(self):
         """Receives message from server. Currently only receiving IMAGE messages
@@ -270,26 +305,28 @@ class US_IMAGE():
         Parameters
         ----------
         none currently """
+        if self.igtl_available == True:
 
-        self.message = self.client.wait_for_message(device_name="USImage", timeout=5.0)
-
+            self.message = self.client.wait_for_message(device_name="USImage", timeout=5.0)
+        #
         # # used for igtl settings with US from CreativeMed
-        self.img = self.message.image
-        self.single_img = np.squeeze(self.img.reshape(1, self.imageSizeY, self.imageSizeX).transpose(0, 1, 2))
-        self.single_img = np.asarray(self.single_img)
-        self.img = np.asarray(self.single_img)
+            self.img = self.message.image
+            self.single_img = np.squeeze(self.img.reshape(1, self.imageSizeY, self.imageSizeX).transpose(0, 1, 2))
+            self.single_img = np.asarray(self.single_img)
+            self.img = np.asarray(self.single_img)
 
         # self.img = Image.open("GUI/sample_image01.png").convert("RGB")
         #
         # self.img = Image.open("../GUI/sample_image01.png").convert("RGB")
 
         # self.img = Image.open("../Img_source_four/Depth13cm.png")
-        # self.img = Image.open(self.img_source_directory)
-        # self.img = self.img.convert("RGB")
-        # self.img = np.asarray(self.img)
+        else:
+            self.img = Image.open(self.img_source_directory)
+            self.img = self.img.convert("RGB")
+            self.img = np.asarray(self.img)
 
         # uncomment this for opencv server testing
-        # self.img = np.array(self.img)
+        #     self.img = np.array(self.img)
 
     def show_live_image(self, img1=None, img2=None, img3=None, img4=None):
         """
@@ -297,7 +334,6 @@ class US_IMAGE():
         Display a single live image of the Ultra Sound screen.
         Display different images based on the different CB
         """
-
         self.receive_image_message()
 
         # #used for igtl settings with US from CreativeMed
@@ -321,16 +357,27 @@ class US_IMAGE():
         if self.show_needle_line_CB == True:
             cv2.line(self.labelled_img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y),
                      (self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y), (255, 255, 255), 3)
+            cv2.drawContours(self.labelled_img,[self.box],0,(255,255,255),2)
 
         if self.show_projected_needle_line_CB == True:
             # print("projected need pts are:")
             # print(self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_End_Pixel_X)
             cv2.line(self.labelled_img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
                      (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (255, 255, 0), 3)
+            hypo_length_projected = int(math.sqrt((self.Projected_Needle_End_Pixel_X - self.Projected_Needle_Start_Pixel_X) ** 2 + (
+                        self.Projected_Needle_End_Pixel_Y - self.Projected_Needle_Start_Pixel_Y) ** 2))
+            rotation_rectangle = (((self.Projected_Needle_End_Pixel_X + self.Projected_Needle_Start_Pixel_X) / 2,
+                                   (self.Projected_Needle_End_Pixel_Y + self.Projected_Needle_Start_Pixel_Y) / 2),
+                                  (int(9 / self.mm_per_pixel), hypo_length_projected), self.Alpha)
+            self.box_projected = cv2.boxPoints(rotation_rectangle)
+            self.box_projected = np.int0(self.box_projected)
+            cv2.drawContours(self.labelled_img,[self.box_projected],0,(255,255,255),2)
+
 
         if self.show_intended_line_CB == True:
             cv2.line(self.labelled_img, (self.Intended_Needle_Start_Pixel_X, self.Intended_Needle_Start_Pixel_Y),
                      (self.Intended_Needle_End_Pixel_X, self.Intended_Needle_End_Pixel_Y), (255, 0, 255), 3)
+
 
         if self.show_target_CB == True:
             cv2.circle(self.labelled_img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
@@ -338,6 +385,9 @@ class US_IMAGE():
         if self.show_US_coordinate_CB == True:
             cv2.putText(self.labelled_img, '{}'.format((self.Target_Pixel_X, self.Target_Pixel_Y)), (100, 100),
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
+
+        if self.show_RCM_CB == True:
+            cv2.circle(self.labelled_img, (self.RCM_PIXEL_X, self.RCM_PIXEL_Y), radius =5, color = (255,0,0),thickness = -1)
 
         if self.show_stacked_images_CB == True:
             if self.frame_two_freezed == True:
@@ -553,6 +603,14 @@ class US_IMAGE():
             self.draw_needle_line_selected = True
             cv2.imshow("Draw Needle Line Window", self.cache2img)
 
+        elif (event == cv2.EVENT_RBUTTONDBLCLK):
+            hypo_length = int(math.sqrt((self.Needle_End_Pixel_X-self.Needle_Start_Pixel_X)**2+(self.Needle_End_Pixel_Y-self.Needle_Start_Pixel_Y)**2))
+            rotation_rectangle = (((self.Needle_End_Pixel_X+self.Needle_Start_Pixel_X)/2,(self.Needle_End_Pixel_Y+self.Needle_Start_Pixel_Y)/2),(int(9/self.mm_per_pixel),hypo_length),self.Alpha)
+            self.box = cv2.boxPoints(rotation_rectangle)
+            self.box = np.int0(self.box)
+            rectangle = cv2.drawContours(self.cache2img,[self.box],0,(0,0,255),2)
+            cv2.imshow("Draw Needle Line Window", self.cache2img)
+
     def Convert_Pixel_to_US_Coord(self):
         """Converts the pixel coordinates to the US coordinates in terms of mm.
         Requires the self.mm_per_pixel to convert.
@@ -598,8 +656,23 @@ class US_IMAGE():
             pass
         else:
             self.Alpha_in_radians = self.Alpha / 180 * math.pi
-            x = (403.78 * math.sin(0.18444 * math.pi - self.Alpha_in_radians)) / (
-                math.sin(0.41405 * math.pi + self.Alpha_in_radians))
+            # x = (403.78 * math.sin(0.18444 * math.pi - self.Alpha_in_radians)) / (
+            #     math.sin(0.41405 * math.pi + self.Alpha_in_radians))
+            """Need to use the RCM_X and RCM_Y pt to calculate the hypo to fixed pt first"""
+            self.RCM_US_distance_x_mm= (self.RCM_PIXEL_X-self.Origin_Pixel_X)*self.mm_per_pixel
+            self.RCM_US_distance_y_mm = (self.RCM_PIXEL_Y-self.Origin_Pixel_Y)*self.mm_per_pixel
+            a = (238.16- self.RCM_US_distance_x_mm)
+            b = (294.80+ self.RCM_US_distance_y_mm)
+            print("RCM distance to fixed pt x is: ")
+            print(a)
+            print("RCM distance to fixed pt y is: ")
+            print(b)
+
+
+            ratio_b_a = b/a
+            hypo = math.sqrt(a**2+b**2)
+            angle_between_alpha_arctan = ((math.pi/2)-(math.atan(ratio_b_a))- self.Alpha_in_radians)
+            x = hypo/ math.sin(math.pi- angle_between_alpha_arctan - (math.atan(ratio_b_a)+(15.47/180*math.pi))) * math.sin(angle_between_alpha_arctan)
             self.actuator_move_value = 170 - x
             self.x_distance = x
             self.lookup_error_correction(self.actuator_move_value, 5)
@@ -607,9 +680,14 @@ class US_IMAGE():
     def calculate_change_d(self):
         error_correction_dict = {}
         self.Alpha_in_radians = self.Alpha / 180 * math.pi
-        d = 46.33 * math.sin(0.1200 * math.pi + self.Alpha_in_radians) / math.sin(
-            (math.pi / 2) - self.Alpha_in_radians)
-        Error_correction_value = float(self.error_correction_value)
+        # d = 46.33 * math.sin(0.1200 * math.pi + self.Alpha_in_radians) / math.sin(
+        #     (math.pi / 2) - self.Alpha_in_radians)
+        hypo_1 = math.sqrt(self.RCM_US_distance_x_mm**2 + self.RCM_US_distance_y_mm**2)
+        angle = math.atan(self.RCM_US_distance_x_mm/self.RCM_US_distance_y_mm) +self.Alpha_in_radians
+        d = hypo_1 / math.sin((math.pi/2)-self.Alpha_in_radians)*math.sin(angle)
+
+        # Error_correction_value = float(self.error_correction_value)
+        Error_correction_value = 0
         self.d_distance = d + Error_correction_value
 
     def calculate_UR_robot_move(self):
@@ -638,9 +716,12 @@ class US_IMAGE():
 
     def lookup_error_correction(self, value, base=5):
         new_value = base * round(value / base)
-        dictionary_round_value = {"40": 10.86, "45": 11.01, "50": 11.16, "55": 11.86, "60": 12.25, "65": 11.74,
-                                  "70": 10.83, "75": 10.61,
-                                  "80": 10.39, "85": 11.47, "90": 13.34, "95": 13.85}
+        # dictionary_round_value = {"40": 10.86, "45": 11.01, "50": 11.16, "55": 11.86, "60": 12.25, "65": 11.74,
+        #                           "70": 10.83, "75": 10.61,
+        #                           "80": 10.39, "85": 11.47, "90": 13.34, "95": 13.85}
+        dictionary_round_value = {"40": 0, "45": 0, "50": 0, "55": 0, "60": 0, "65": 0,
+                                  "70": 0, "75": 0,
+                                  "80": 0, "85": 0, "90": 0, "95": 0}
         self.error_correction_value = str(dictionary_round_value.get(str(new_value)))
 
     def image_detection_window(self):
@@ -894,3 +975,114 @@ class US_IMAGE():
             cv2.destroyAllWindows()
 
         self.initialState = None
+
+    def Mouse_Callback_Draw_RCM01(self, event, x, y, flags, param):
+        """Mouse callback event using CV2
+
+        Parameters
+        ----------
+        EVENT_LBUTTONDOWN: marks a point on the image, updates the RCM01_START_PIXEL_X, RCM01_START_PIXEL_Y values
+        with the image pixel value when clicked
+        EVENT_MBUTTONDOWN: clear markings on the image, returns a copy of the live image"
+        EVENT_RBUTTONDOWN: marks the end pt of the RCM01 line, updates the RCM01_END_PIXEL_X, RCM_END_PIXEL_Y values
+        with the image pixel value when clicked
+        """
+        if (event == cv2.EVENT_LBUTTONDOWN):
+            self.cache4_img = copy.deepcopy(self.img)
+
+            self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = x,y
+            cv2.circle(self.cache4_img,(self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y),radius = 5, color =(255,0,0), thickness=-1)
+            cv2.imshow("DRAW_RCM_LINE_01",self.cache4_img)
+            self.draw_RCM_01_bool = True
+
+        elif (event == cv2.EVENT_MBUTTONDOWN):
+            self.cache4_img = copy.deepcopy(self.img)
+            self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = 0,0
+            self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = 0,0
+            self.draw_RCM_01_bool = False
+            cv2.imshow("DRAW_RCM_LINE_01", self.cache4_img)
+
+        elif (event == cv2.EVENT_RBUTTONDOWN):
+            self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = x,y
+            cv2.circle(self.cache4_img, (self.RCM_01_END_PIXEL_X,self.RCM_01_END_PIXEL_Y),radius = 5, color = (0,0,255), thickness = -1)
+            cv2.line(self.cache4_img, (self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y),(self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y), (255, 255, 255), 3)
+
+            self.calculate_equation_RCM_01()
+            self.draw_RCM_01_bool = True
+            cv2.imshow("DRAW_RCM_LINE_01", self.cache4_img)
+
+
+    def Mouse_Callback_Draw_RCM02(self, event, x, y, flags, param):
+        """Mouse callback event using CV2
+
+        Parameters
+        ----------
+        EVENT_LBUTTONDOWN: marks a point on the image, updates the RCM01_START_PIXEL_X, RCM01_START_PIXEL_Y values
+        with the image pixel value when clicked
+        EVENT_MBUTTONDOWN: clear markings on the image, returns a copy of the live image"
+        EVENT_RBUTTONDOWN: marks the end pt of the RCM01 line, updates the RCM01_END_PIXEL_X, RCM_END_PIXEL_Y values
+        with the image pixel value when clicked
+        """
+        if (event == cv2.EVENT_LBUTTONDOWN):
+            self.cache5_img = copy.deepcopy(self.img)
+
+            self.RCM_02_START_PIXEL_X, self.RCM_02_START_PIXEL_Y = x, y
+            cv2.circle(self.cache5_img, (self.RCM_02_START_PIXEL_X, self.RCM_02_START_PIXEL_Y), radius=5,
+                       color=(255, 0, 0), thickness=-1)
+            cv2.imshow("DRAW_RCM_LINE_02", self.cache5_img)
+            self.draw_RCM_02_bool = True
+
+        elif (event == cv2.EVENT_MBUTTONDOWN):
+            self.cache5_img = copy.deepcopy(self.img)
+            self.RCM_02_START_PIXEL_X, self.RCM_02_START_PIXEL_Y = 0, 0
+            self.RCM_02_END_PIXEL_X, self.RCM_02_END_PIXEL_Y = 0, 0
+            self.draw_RCM_02_bool = False
+            cv2.imshow("DRAW_RCM_LINE_02", self.cache5_img)
+
+        elif (event == cv2.EVENT_RBUTTONDOWN):
+            self.RCM_02_END_PIXEL_X, self.RCM_02_END_PIXEL_Y = x, y
+            cv2.circle(self.cache5_img, (self.RCM_02_END_PIXEL_X, self.RCM_02_END_PIXEL_Y), radius=5, color=(0, 0, 255),
+                       thickness=-1)
+            cv2.line(self.cache5_img, (self.RCM_02_START_PIXEL_X, self.RCM_02_START_PIXEL_Y),
+                     (self.RCM_02_END_PIXEL_X, self.RCM_02_END_PIXEL_Y), (255, 255, 255), 3)
+            self.draw_RCM_02_bool = True
+            self.calculate_equation_RCM_02()
+            cv2.imshow("DRAW_RCM_LINE_02", self.cache5_img)
+
+
+
+    def draw_RCM_Line(self,img_number):
+        if img_number == 1:
+            if not self.draw_RCM_01_bool:
+                self.draw_RCM01_img = self.img
+
+            else:
+                self.draw_RCM01_img = self.cache4_img
+            cv2.imshow("DRAW_RCM_LINE_01", self.draw_RCM01_img)
+            cv2.setMouseCallback("DRAW_RCM_LINE_01", self.Mouse_Callback_Draw_RCM01)
+
+        elif img_number == 2:
+            if not self.draw_RCM_02_bool:
+                self.draw_RCM02_img = self.img
+            else:
+                self.draw_RCM02_img = self.cache5_img
+            cv2.imshow("DRAW_RCM_LINE_02", self.draw_RCM02_img)
+            cv2.setMouseCallback("DRAW_RCM_LINE_02", self.Mouse_Callback_Draw_RCM02)
+
+
+    def calculate_equation_RCM_01(self):
+        self.gradient_RCM_01 = (self.RCM_01_END_PIXEL_Y-self.RCM_01_START_PIXEL_Y) / (self.RCM_01_END_PIXEL_X-self.RCM_01_START_PIXEL_X)
+        self.intersect_RCM_01 = self.RCM_01_END_PIXEL_Y - (self.gradient_RCM_01 * self.RCM_01_END_PIXEL_X)
+    def calculate_equation_RCM_02(self):
+        self.gradient_RCM_02 = (self.RCM_02_END_PIXEL_Y - self.RCM_02_START_PIXEL_Y) / (
+                    self.RCM_02_END_PIXEL_X - self.RCM_02_START_PIXEL_X)
+        self.intersect_RCM_02 = self.RCM_02_END_PIXEL_Y - (self.gradient_RCM_02 * self.RCM_02_END_PIXEL_X)
+
+    def calculate_RCM_px(self):
+        self.RCM_PIXEL_X = int((self.intersect_RCM_02-self.intersect_RCM_01)/(self.gradient_RCM_01-self.gradient_RCM_02))
+        self.RCM_PIXEL_Y = int(self.gradient_RCM_01*self.RCM_PIXEL_X + self.intersect_RCM_01)
+
+    def overwrite_RCM_value(self):
+        self.RCM_PIXEL_X = int((238.16-self.Overwrite_RCM_X_Entry_Value)/self.mm_per_pixel)+self.Origin_Pixel_X
+        self.RCM_PIXEL_Y = int((self.Overwrite_RCM_Y_Entry_Value-294.80)/self.mm_per_pixel)+self.Origin_Pixel_Y
+

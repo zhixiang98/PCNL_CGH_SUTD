@@ -36,7 +36,7 @@ class Overview(tkinter.Frame):
         self.display = None
         self.cont = cont
         self.delay = c.REFRESH_DELAY
-        self.igtl_available = True
+        self.igtl_available = False
 
         # --- Tkinter Variables ---
         # """Tkinter Variables will be in CAPs"""
@@ -118,6 +118,20 @@ class Overview(tkinter.Frame):
         self.Image_Four_Screen_Freeze_Button.grid(row=c.IMAGE_FOUR_SCREEN_FREEZE_BUTTON_ROW,
                                                   column=c.IMAGE_FOUR_SCREEN_FREEZE_BUTTON_COLUMN)
 
+        # ---- Calibration Image-------
+        self.Calibrate_RCM_Image_01_Button = tkinter.Button(self.Image_Setting_Label_Frame, text="RCM_IMG01",
+                                                            command=lambda: self.draw_RCM_Image01(), width=c.BUTTON_WIDTH)
+        self.Calibrate_RCM_Image_01_Button.grid(row = c.RCM_IMG01_CALIBRATE_BUTTON_ROW, column = c.RCM_IMG01_CALIBRATE_BUTTON_COLUMN)
+
+        self.Calibrate_RCM_Image_02_Button = tkinter.Button(self.Image_Setting_Label_Frame, text="RCM_IMG02",
+                                                            command=lambda: self.draw_RCM_Image02(), width=c.BUTTON_WIDTH)
+        self.Calibrate_RCM_Image_02_Button.grid(row=c.RCM_IMG02_CALIBRATE_BUTTON_ROW, column= c.RCM_IMG02_CALIBRATE_BUTTON_COLUMN)
+
+
+        self.Calibrate_RCM_Button = tkinter.Button(self.Image_Setting_Label_Frame, text="RCM_CALIBRATE",
+                                                            command=lambda: self.RCM_Calibrate_Button(), width=c.BUTTON_WIDTH)
+        self.Calibrate_RCM_Button.grid(row=c.RCM_CALIBRATE_BUTTON_ROW, column= c.RCM_CALIBRATE_BUTTON_COLUMN)
+
         # --- CB tkinter variables---
         self.Show_Origin_CB_Var = tkinter.IntVar()
         self.Show_Needle_CB_Line_Var = tkinter.IntVar()
@@ -126,6 +140,8 @@ class Overview(tkinter.Frame):
         self.Show_Projected_Line_CB_Var = tkinter.IntVar()
         self.Show_Stacked_Images_CB_Var = tkinter.IntVar()
         self.Show_Intended_Line_CB_Var = tkinter.IntVar()
+        self.Show_RCM_CB_Var = tkinter.IntVar()
+
 
         # --- CB tkinter ----
         self.show_projected_line_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text="show_intended_line",
@@ -164,6 +180,19 @@ class Overview(tkinter.Frame):
                                                          variable=self.Show_Intended_Line_CB_Var, onvalue=1, offvalue=0)
         self.show_intended_line_CB.grid(row=c.SHOW_INTENDED_LINE_CB_ROW, column=c.SHOW_INTENDED_LINE_CB_COLUMN, padx=20)
 
+        self.show_RCM_CB = tkinter.Checkbutton(self.Image_Setting_Label_Frame, text = "RCM", variable = self.Show_RCM_CB_Var,onvalue=1, offvalue=0)
+        self.show_RCM_CB.grid(row=c.SHOW_RCM_CB_ROW, column = c.SHOW_RCM_CB_COLUMN, padx=20)
+
+        self.Overwrite_RCM_X_DB_Var = tkinter.DoubleVar()
+        self.Overwrite_RCM_Y_DB_Var = tkinter.DoubleVar()
+
+        self.Overwrite_RCM_X_Entry = tkinter.Entry(self.Image_Setting_Label_Frame, textvariable= str(self.Overwrite_RCM_X_DB_Var), width = 10)
+        self.Overwrite_RCM_Y_Entry = tkinter.Entry(self.Image_Setting_Label_Frame, textvariable = str(self.Overwrite_RCM_Y_DB_Var),width = 10)
+        self.Overwrite_RCM_X_Entry.grid(row = c.RCM_OVERWRITE_X_ENTRY_ROW , column = c.RCM_OVERWRITE_X_ENTRY_COLUMN)
+        self.Overwrite_RCM_Y_Entry.grid(row=c.RCM_OVERWRITE_Y_ENTRY_ROW, column=c.RCM_OVERWRITE_Y_ENTRY_COLUMN)
+
+        self.Overwrite_RCM_Button = tkinter.Button(self.Image_Setting_Label_Frame, text = "RCM Overwrite", width = c.BUTTON_WIDTH, command = lambda:self.RCM_Overwrite_Button())
+        self.Overwrite_RCM_Button.grid(row=c.RCM_OVERWRITE_BUTTON_ROW, column = c.RCM_OVERWRITE_BUTTON_COLUMN)
         # --------US_INFO_LABEL_FRAME--------------
 
         self.US_INFO_LABEL_FRAME = tkinter.LabelFrame(self, text="Ultrasound Information")
@@ -925,7 +954,7 @@ class Overview(tkinter.Frame):
     def connection_igtl_client(self):
         if self.igtl_available == True:
             if not self.igtl_initialised:
-                self.main_image = US_Screen.US_Image.US_IMAGE()
+                self.main_image = US_Screen.US_Image.US_IMAGE(True)
                 self.igtl_initialised = True
             else:
                 self.main_image.connect_igtl_client()
@@ -935,16 +964,21 @@ class Overview(tkinter.Frame):
             if filename:
                 try:
                     file = r"{}".format(filename)
-                    self.main_image = US_Screen.US_Image.US_IMAGE()
+                    self.main_image = US_Screen.US_Image.US_IMAGE(False)
                     self.main_image.img_source_directory = str(file)
                     self.igtl_initialised = True
                 except Exception as error:
-                    print(error)
+                    print(error,"ERROR HERE")
 
     def CheckCB(self):
         if self.igtl_initialised == True:
 
             """Function to check tkinter_CB elements updates main_image attributes after checked"""
+            if self.Show_RCM_CB_Var.get() == 1:
+                self.main_image.show_RCM_CB = True
+            else:
+                self.main_image.show_RCM_CB = False
+
             if self.Show_Origin_CB_Var.get() == 1:
                 self.main_image.show_origin_CB = True
             else:
@@ -1323,3 +1357,41 @@ class Overview(tkinter.Frame):
         else:
             self.main_image.show_image_detection_controller_window = False
             self.IMAGE_DETECTION_CONTROLLER_BUTTON.config(relief="raised")
+
+    def draw_RCM_Image01(self):
+        try:
+            self.main_image.draw_RCM_Line(1)
+        except:
+            print("ERROR CANNOT DRAWLINE ON RCM IMAGE 01")
+
+    def draw_RCM_Image02(self):
+        try:
+            self.main_image.draw_RCM_Line(2)
+        except:
+            print("ERROR CANNOT DRAWLINE ON RCM IMAGE 02")
+
+
+    def RCM_Calibrate_Button(self):
+        if self.Calibrate_RCM_Button["relief"] == "raised":
+            try:
+                self.main_image.calculate_RCM_px()
+                self.Calibrate_RCM_Button.config(relief = 'sunken')
+                self.Calibrate_RCM_Button.config(bg = 'spring green')
+            except AttributeError as e:
+                print("ERROR RCM_Calibration_Button " +str(e))
+
+        else:
+            try:
+                self.Calibrate_RCM_Button.config(relief= "raised")
+                self.Calibrate_RCM_Button.config(bg = "SystemButtonFace")
+            except AttributeError as e:
+                print("ERROR RCM Calibration_Button" + str(e))
+
+    def RCM_Overwrite_Button(self):
+        try:
+            self.main_image.Overwrite_RCM_X_Entry_Value = float(self.Overwrite_RCM_X_Entry.get())
+            self.main_image.Overwrite_RCM_Y_Entry_Value = float(self.Overwrite_RCM_Y_Entry.get())
+
+            self.main_image.overwrite_RCM_value()
+        except Exception as e:
+            print (e)
