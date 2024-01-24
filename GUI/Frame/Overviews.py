@@ -25,7 +25,7 @@ class Overview(tkinter.Frame):
     def __init__(self, parent, cont):
         tkinter.Frame.__init__(self, parent)
 
-        self.save_image_directory = r"C:\Users\Zhi Xiang\Desktop\pythonProject\PCNL_CGH_SUTD\Image_Detection"
+        self.save_image_directory = r"C:\Users\Zhi Xiang\Desktop\pythonProject\PCNL_CGH_SUTD\15JAN"
         os.chdir(self.save_image_directory)
 
         self.main_image = None
@@ -36,7 +36,7 @@ class Overview(tkinter.Frame):
         self.display = None
         self.cont = cont
         self.delay = c.REFRESH_DELAY
-        self.igtl_available = False
+        self.igtl_available = True
 
         # --- Tkinter Variables ---
         # """Tkinter Variables will be in CAPs"""

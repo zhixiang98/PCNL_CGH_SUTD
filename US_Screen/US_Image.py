@@ -8,7 +8,7 @@ import math
 
 
 class US_IMAGE():
-    def __init__(self,igtl_status):
+    def __init__(self, igtl_status):
         # ---Pixel Coordinates---
         """
         Origin_Pixel_X, Origin_Pixel_Y are pixel coordinates  of the clicked origin from self.select_origin(). Measured from the image using CV2 coordinates
@@ -36,7 +36,6 @@ class US_IMAGE():
 
         self.Intended_Needle_Start_Pixel_X, self.Intended_Needle_Start_Pixel_Y = 0, 0
         self.Intended_Needle_End_Pixel_X, self.Intended_Needle_End_Pixel_Y = 0, 0
-
 
         # ---Ultrasound Coordinates---
         """
@@ -93,7 +92,6 @@ class US_IMAGE():
         """
         # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
         if self.igtl_available == True:
-
             self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.49", port=23338)
 
         self.img_source_directory = None  # location for placeholder image
@@ -138,8 +136,8 @@ class US_IMAGE():
         self.draw_needle_line_selected = False
         self.target_selected = False
         self.stacked_images_selected = False
-        self.draw_RCM_01_bool = False  #Iniialise draw_RCM_01_line
-        self.draw_RCM_02_bool = False #Initialise draw RCM_02_line
+        self.draw_RCM_01_bool = False  # Iniialise draw_RCM_01_line
+        self.draw_RCM_02_bool = False  # Initialise draw RCM_02_line
 
         # -----CheckBoxes-----------
         self.show_origin_CB = False
@@ -183,10 +181,10 @@ class US_IMAGE():
 
         self.draw_RCM01_img = None
         self.draw_RCM02_img = None
-        self.cache4_img = None #draw RCM_cache_img
+        self.cache4_img = None  # draw RCM_cache_img
         self.cache5_img = None
 
-        self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = 0,0
+        self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = 0, 0
         self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = 0, 0
         self.RCM_02_START_PIXEL_X, self.RCM_02_START_PIXEL_Y = 0, 0
         self.RCM_02_END_PIXEL_X, self.RCM_02_END_PIXEL_Y = 0, 0
@@ -205,6 +203,11 @@ class US_IMAGE():
 
         self.box = None
         self.box_projected = None
+        self.show_bfl = False
+        self.angle_2_y_in_degree = 0
+
+        self.image_detection_ready = False
+
     def calculateBestFitLine(self, vx, vy, x0, y0):
         """Return the best fit line, value in the terms of tupple (x_pt1, y_pt1), (x_pt2, y_pt2)"""
         x_pt1 = 0
@@ -294,7 +297,7 @@ class US_IMAGE():
         # self.client.stop()  # stop connection first
         if self.igtl_available == True:
             print("RECONNECTED_CLIENT")
-        # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
+            # self.client = pyigtl.OpenIGTLinkClient(host="127.0.0.1", port=18944)
             self.client = pyigtl.OpenIGTLinkClient(host="192.168.1.49", port=23338)
         else:
             pass
@@ -308,8 +311,8 @@ class US_IMAGE():
         if self.igtl_available == True:
 
             self.message = self.client.wait_for_message(device_name="USImage", timeout=5.0)
-        #
-        # # used for igtl settings with US from CreativeMed
+            #
+            # # used for igtl settings with US from CreativeMed
             self.img = self.message.image
             self.single_img = np.squeeze(self.img.reshape(1, self.imageSizeY, self.imageSizeX).transpose(0, 1, 2))
             self.single_img = np.asarray(self.single_img)
@@ -357,27 +360,26 @@ class US_IMAGE():
         if self.show_needle_line_CB == True:
             cv2.line(self.labelled_img, (self.Needle_Start_Pixel_X, self.Needle_Start_Pixel_Y),
                      (self.Needle_End_Pixel_X, self.Needle_End_Pixel_Y), (255, 255, 255), 3)
-            cv2.drawContours(self.labelled_img,[self.box],0,(255,255,255),2)
+            cv2.drawContours(self.labelled_img, [self.box], 0, (255, 255, 255), 2)
 
         if self.show_projected_needle_line_CB == True:
             # print("projected need pts are:")
             # print(self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_End_Pixel_X)
             cv2.line(self.labelled_img, (self.Projected_Needle_Start_Pixel_X, self.Projected_Needle_Start_Pixel_Y),
                      (self.Projected_Needle_End_Pixel_X, self.Projected_Needle_End_Pixel_Y), (255, 255, 0), 3)
-            hypo_length_projected = int(math.sqrt((self.Projected_Needle_End_Pixel_X - self.Projected_Needle_Start_Pixel_X) ** 2 + (
+            hypo_length_projected = int(
+                math.sqrt((self.Projected_Needle_End_Pixel_X - self.Projected_Needle_Start_Pixel_X) ** 2 + (
                         self.Projected_Needle_End_Pixel_Y - self.Projected_Needle_Start_Pixel_Y) ** 2))
             rotation_rectangle = (((self.Projected_Needle_End_Pixel_X + self.Projected_Needle_Start_Pixel_X) / 2,
                                    (self.Projected_Needle_End_Pixel_Y + self.Projected_Needle_Start_Pixel_Y) / 2),
                                   (int(9 / self.mm_per_pixel), hypo_length_projected), self.Alpha)
             self.box_projected = cv2.boxPoints(rotation_rectangle)
             self.box_projected = np.int0(self.box_projected)
-            cv2.drawContours(self.labelled_img,[self.box_projected],0,(255,255,255),2)
-
+            cv2.drawContours(self.labelled_img, [self.box_projected], 0, (255, 255, 255), 2)
 
         if self.show_intended_line_CB == True:
             cv2.line(self.labelled_img, (self.Intended_Needle_Start_Pixel_X, self.Intended_Needle_Start_Pixel_Y),
                      (self.Intended_Needle_End_Pixel_X, self.Intended_Needle_End_Pixel_Y), (255, 0, 255), 3)
-
 
         if self.show_target_CB == True:
             cv2.circle(self.labelled_img, (self.Target_Pixel_X, self.Target_Pixel_Y), radius=5, color=(255, 0, 0),
@@ -387,7 +389,8 @@ class US_IMAGE():
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
 
         if self.show_RCM_CB == True:
-            cv2.circle(self.labelled_img, (self.RCM_PIXEL_X, self.RCM_PIXEL_Y), radius =5, color = (255,0,0),thickness = -1)
+            cv2.circle(self.labelled_img, (self.RCM_PIXEL_X, self.RCM_PIXEL_Y), radius=5, color=(255, 0, 0),
+                       thickness=-1)
 
         if self.show_stacked_images_CB == True:
             if self.frame_two_freezed == True:
@@ -604,11 +607,14 @@ class US_IMAGE():
             cv2.imshow("Draw Needle Line Window", self.cache2img)
 
         elif (event == cv2.EVENT_RBUTTONDBLCLK):
-            hypo_length = int(math.sqrt((self.Needle_End_Pixel_X-self.Needle_Start_Pixel_X)**2+(self.Needle_End_Pixel_Y-self.Needle_Start_Pixel_Y)**2))
-            rotation_rectangle = (((self.Needle_End_Pixel_X+self.Needle_Start_Pixel_X)/2,(self.Needle_End_Pixel_Y+self.Needle_Start_Pixel_Y)/2),(int(9/self.mm_per_pixel),hypo_length),self.Alpha)
+            hypo_length = int(math.sqrt((self.Needle_End_Pixel_X - self.Needle_Start_Pixel_X) ** 2 + (
+                        self.Needle_End_Pixel_Y - self.Needle_Start_Pixel_Y) ** 2))
+            rotation_rectangle = (((self.Needle_End_Pixel_X + self.Needle_Start_Pixel_X) / 2,
+                                   (self.Needle_End_Pixel_Y + self.Needle_Start_Pixel_Y) / 2),
+                                  (int(9 / self.mm_per_pixel), hypo_length), self.Alpha)
             self.box = cv2.boxPoints(rotation_rectangle)
             self.box = np.int0(self.box)
-            rectangle = cv2.drawContours(self.cache2img,[self.box],0,(0,0,255),2)
+            rectangle = cv2.drawContours(self.cache2img, [self.box], 0, (0, 0, 255), 2)
             cv2.imshow("Draw Needle Line Window", self.cache2img)
 
     def Convert_Pixel_to_US_Coord(self):
@@ -659,20 +665,21 @@ class US_IMAGE():
             # x = (403.78 * math.sin(0.18444 * math.pi - self.Alpha_in_radians)) / (
             #     math.sin(0.41405 * math.pi + self.Alpha_in_radians))
             """Need to use the RCM_X and RCM_Y pt to calculate the hypo to fixed pt first"""
-            self.RCM_US_distance_x_mm= (self.RCM_PIXEL_X-self.Origin_Pixel_X)*self.mm_per_pixel
-            self.RCM_US_distance_y_mm = (self.RCM_PIXEL_Y-self.Origin_Pixel_Y)*self.mm_per_pixel
-            a = (238.16- self.RCM_US_distance_x_mm)
-            b = (294.80+ self.RCM_US_distance_y_mm)
+            self.RCM_US_distance_x_mm = (self.RCM_PIXEL_X - self.Origin_Pixel_X) * self.mm_per_pixel
+            self.RCM_US_distance_y_mm = (self.RCM_PIXEL_Y - self.Origin_Pixel_Y) * self.mm_per_pixel
+            a = (238.16 - self.RCM_US_distance_x_mm)
+            b = (294.80 + self.RCM_US_distance_y_mm)
             print("RCM distance to fixed pt x is: ")
             print(a)
             print("RCM distance to fixed pt y is: ")
             print(b)
 
-
-            ratio_b_a = b/a
-            hypo = math.sqrt(a**2+b**2)
-            angle_between_alpha_arctan = ((math.pi/2)-(math.atan(ratio_b_a))- self.Alpha_in_radians)
-            x = hypo/ math.sin(math.pi- angle_between_alpha_arctan - (math.atan(ratio_b_a)+(15.47/180*math.pi))) * math.sin(angle_between_alpha_arctan)
+            ratio_b_a = b / a
+            hypo = math.sqrt(a ** 2 + b ** 2)
+            angle_between_alpha_arctan = ((math.pi / 2) - (math.atan(ratio_b_a)) - self.Alpha_in_radians)
+            x = hypo / math.sin(
+                math.pi - angle_between_alpha_arctan - (math.atan(ratio_b_a) + (15.47 / 180 * math.pi))) * math.sin(
+                angle_between_alpha_arctan)
             self.actuator_move_value = 170 - x
             self.x_distance = x
             self.lookup_error_correction(self.actuator_move_value, 5)
@@ -682,9 +689,9 @@ class US_IMAGE():
         self.Alpha_in_radians = self.Alpha / 180 * math.pi
         # d = 46.33 * math.sin(0.1200 * math.pi + self.Alpha_in_radians) / math.sin(
         #     (math.pi / 2) - self.Alpha_in_radians)
-        hypo_1 = math.sqrt(self.RCM_US_distance_x_mm**2 + self.RCM_US_distance_y_mm**2)
-        angle = math.atan(self.RCM_US_distance_x_mm/self.RCM_US_distance_y_mm) +self.Alpha_in_radians
-        d = hypo_1 / math.sin((math.pi/2)-self.Alpha_in_radians)*math.sin(angle)
+        hypo_1 = math.sqrt(self.RCM_US_distance_x_mm ** 2 + self.RCM_US_distance_y_mm ** 2)
+        angle = math.atan(self.RCM_US_distance_x_mm / self.RCM_US_distance_y_mm) + self.Alpha_in_radians
+        d = hypo_1 / math.sin((math.pi / 2) - self.Alpha_in_radians) * math.sin(angle)
 
         # Error_correction_value = float(self.error_correction_value)
         Error_correction_value = 0
@@ -724,12 +731,177 @@ class US_IMAGE():
                                   "80": 0, "85": 0, "90": 0, "95": 0}
         self.error_correction_value = str(dictionary_round_value.get(str(new_value)))
 
+    # def image_detection_window(self):
+    #     gray_image = self.img
+    #     # gray_image = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+    #     self.edited_frame = copy.deepcopy(self.img)
+    #
+    #     gray_frame = cv2.GaussianBlur(gray_image, (21, 21), 0)
+    #     if not self.initialise_canvas:
+    #         self.blank_canvas = np.zeros_like(gray_frame)
+    #         self.initialise_canvas = True
+    #
+    #     if self.initialState is None:
+    #         self.initialState = gray_frame
+    #         return
+    #
+    #     differ_frame = cv2.absdiff(self.initialState, gray_frame)
+    #
+    #     # thresh_frame = differ_frame
+    #     thresh_frame = cv2.threshold(differ_frame, 30, 255, cv2.THRESH_BINARY)[1]
+    #
+    #     thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
+    #
+    #     # For the moving object in the frame finding the coutours
+    #
+    #     # self.imgStack = self.stackImages(0.40,([self.img,self.img],[self.img,self.img]))
+    #
+    #     cont, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #     #
+    #     for cur in cont:
+    #         #
+    #         if cv2.contourArea(cur) < 50 or len(cont) > 3 or cv2.contourArea(cur) > 500:
+    #             continue
+    #         #
+    #         (cur_x, cur_y, cur_w, cur_h) = cv2.boundingRect(cur)
+    #         #
+    #         M = cv2.moments(cur)
+    #         cX = int(M["m10"] / M["m00"])
+    #         cY = int(M["m01"] / M["m00"])
+    #         #     print(cX, cY)
+    #
+    #         self.coord_list.append([cX, cY])
+    #         self.image_detection_coord_list.append([cX, cY])
+    #
+    #         cv2.drawContours(self.edited_frame, [cur], -1, (0, 255, 0), 2)
+    #         cv2.circle(self.edited_frame, (cX, cY), 7, (255, 255, 255), -1)
+    #         # To create a rectangle of green color around the moving object
+    #         #
+    #         cv2.rectangle(self.edited_frame, (cur_x, cur_y), (cur_x + cur_w, cur_y + cur_h), (0, 255, 0), 3)
+    #
+    #         cv2.circle(self.blank_canvas, (cX, cY), 7, (255, 255, 0), -1)
+    #     #     # from the frame adding the motion status
+    #     #
+    #     self.superimpose_img = cv2.bitwise_or(self.img, self.blank_canvas)
+    #
+    #     # add the detected points on the img
+    #     for i in self.coord_list:
+    #         # print(i)
+    #         cv2.circle(self.edited_frame, (i[0], i[1]), 5, (255, 255, 255), -1)
+    #
+    #     # # stack image
+    #     self.imgStack = self.stackImages(0.40,
+    #                                      ([self.img, self.edited_frame], [self.blank_canvas, self.superimpose_img]))
+    #
+    #     # self.superimpose_img = copy.deepcopy(self.img)
+    #     if not self.kill_image_detection_window:
+    #         cv2.imshow("stack_img", self.imgStack)
+    #         # Creating a key to wait
+    #         wait_key = cv2.waitKey(1)
+    #
+    #         # With the help of the 'm' key ending the whole process of our system
+    #
+    #         """Press 'm' key to clear all points"""
+    #         if wait_key == ord('c'):
+    #             self.image_detection_coord_list = []
+    #             self.initialise_canvas = False
+    #
+    #         """Press 's' key to draw best fit line"""
+    #         if wait_key == ord('m'):
+    #             if len(self.coord_list) > 3:
+    #                 self.curr_x, self.curr_y = 0, 0
+    #                 self.prev_x, self.prev_y = 0, 0
+    #                 self.tol_x = 20
+    #                 self.tol_y = 20
+    #                 self.initialise = False
+    #                 for idx, i in enumerate(self.coord_list):
+    #                     # print(idx, i)
+    #                     if self.curr_x == 0 and self.curr_y == 0:
+    #                         self.initialise = True
+    #                         self.prev_x, self.prev_y = i[0], i[1]
+    #
+    #                     curr_x, curr_y = i[0], i[1]
+    #                     if ((self.prev_x - self.curr_x) < -self.tol_x) or (
+    #                             (self.curr_y - self.prev_y) < -self.tol_y) and self.initialise == True:
+    #                         self.coord_list.pop(idx)
+    #                     else:
+    #                         self.prev_x, self.prev_y = i[0], i[1]
+    #             coord_array = np.array(self.coord_list)
+    #
+    #             # coord_array = np.array(self.coord_list)
+    #             [vx, vy, x0, y0] = cv2.fitLine(coord_array, cv2.DIST_L1, 0, 0.01, 0.01)
+    #             #
+    #             # print(vx, vy, x0, y0)
+    #             y_axis = np.array([0, 1])  # unit vector in the same direction as the x axis
+    #             your_line = np.array(vx[0], vy[0])  # unit vector in the same direction as your line
+    #             dot_product = np.dot(y_axis, your_line)
+    #             angle_2_y = np.arcsin(dot_product)
+    #             # print(angle_2_y)
+    #             #
+    #             angle_2_y_in_degree = (angle_2_y / math.pi * 180)
+    #             best_fit_angle = "_" + str(angle_2_y_in_degree[1]) + "_"
+    #             #     # Releasing the video
+    #             #
+    #             (x0, y0), (x1, y1) = self.calculateBestFitLine(vx[0], vy[0], x0[0], y0[0])
+    #             cv2.line(self.edited_frame, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
+    #             cv2.line(self.blank_canvas, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
+    #
+    #             # cv2.line(self.superimpose_img, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
+    #             print(best_fit_angle)
+    #             img = Image.fromarray(self.edited_frame)
+    #             img.save(str(best_fit_angle) + "edited_img")
+    #
+    #             img1 = Image.fromarray(self.blank_canvas)
+    #             img1.save(str(best_fit_angle) + "blank_canvas")
+    #
+    #         if wait_key == ord('q'):
+    #             self.kill_image_detection_window = True
+    #             cv2.destroyAllWindows()
+    #
+    #     self.initialState = None
+
+    def maskImage(self,image, start_px, end_px, length, height):
+        mask = np.zeros(image.shape[:2], dtype="uint8")
+        cv2.rectangle(mask, (start_px, end_px), (length, height), 255, -1)
+        return mask
+
+    def maskImageRectangle(self,img, startpx_x, startpx_y, endpx_x, endpx_y, length, breadth, angle):
+        """return mask image
+        takes in arguments of:
+        image: image of a blank canvas... whereby the mask will be drawn on. Should be similar in shape with the image to be masked on
+        startpx_x: Pixel x coordinate of start rectangle
+        startpx_y: Pixel y coordinate of start rectangle
+        endpx_x: Pixel x coordinate of end rectangle
+        endpx_y: Pixel y coordinate of end rectangle
+        length: currently not in use
+        breadth: Width of the mask
+        angle: measured from vertical line similar to alpha
+        Mask rectangle will rotate about the center point
+        """
+        hypo_length = int(math.sqrt((startpx_x - endpx_x) ** 2 + (
+                startpx_y - endpx_y) ** 2))
+        rotation_rectangle = (((startpx_x + endpx_x) / 2,
+                               (startpx_y + endpx_y) / 2),
+                              (breadth, hypo_length), angle)
+        box = cv2.boxPoints(rotation_rectangle)
+        box = np.int0(box)
+        mask = np.zeros(img.shape[:2], dtype="uint8")
+        cv2.drawContours(mask, [box], -1, (255, 255, 255), -1)
+        return mask
+
     def image_detection_window(self):
         gray_image = self.img
-        # gray_image = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        # gray_image = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY) #no need to convert for igtl img
+        mask_image =self.maskImage(gray_image, 737,29,1057,450)
+        # mask_image = self.maskImageRectangle(gray_image, 965, 5, 1465, 695, 500, 0, 0)
+        # TODO: do a function that estimate mask position, orientation
+        gray_image = cv2.bitwise_and(gray_image, gray_image, mask=mask_image)
+
         self.edited_frame = copy.deepcopy(self.img)
+        self.superimpose_img = copy.deepcopy(self.img)
 
         gray_frame = cv2.GaussianBlur(gray_image, (21, 21), 0)
+
         if not self.initialise_canvas:
             self.blank_canvas = np.zeros_like(gray_frame)
             self.initialise_canvas = True
@@ -751,228 +923,201 @@ class US_IMAGE():
 
         cont, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         #
+        biggest_blob_area = 0
+
         for cur in cont:
-            #
-            if cv2.contourArea(cur) < 50 or len(cont) > 3 or cv2.contourArea(cur) > 500:
+            # """method 1 image detection"""
+            # if cv2.contourArea(cur) < 50 or len(cont) > 3 or cv2.contourArea(cur) > 500:
+            #     continue
+            # """method 2 image detection_detect largest blob"""
+            curr_area = cv2.contourArea(cur)
+            if curr_area < biggest_blob_area:
                 continue
-            #
+            biggest_blob_area = curr_area
+
             (cur_x, cur_y, cur_w, cur_h) = cv2.boundingRect(cur)
             #
             M = cv2.moments(cur)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
             #     print(cX, cY)
-            if ((682<=cX<=1178) and (5<=cY<=463)):
-                self.coord_list.append([cX, cY])
 
-                self.image_detection_coord_list.append([cX, cY])
-                cv2.drawContours(self.edited_frame, [cur], -1, (0, 255, 0), 2)
-                cv2.circle(self.edited_frame, (cX, cY), 7, (255, 255, 255), -1)
-                # To create a rectangle of green color around the moving object
-                #
-                cv2.rectangle(self.edited_frame, (cur_x, cur_y), (cur_x + cur_w, cur_y + cur_h), (0, 255, 0), 3)
+            """coord_list is cumulative of all identified points
+            image_detection_coord_list is after each move points"""
+            self.coord_list.append([cX, cY])
+            self.image_detection_coord_list.append([cX, cY])
 
-                cv2.circle(self.blank_canvas, (cX, cY), 7, (255, 255, 0), -1)
-            #     # from the frame adding the motion status
+            cv2.drawContours(self.edited_frame, [cur], -1, (0, 255, 0), 2)
+            cv2.circle(self.edited_frame, (cX, cY), 7, (255, 255, 255), -1)
+            # To create a rectangle of green color around the moving object
             #
-        self.superimpose_img = cv2.bitwise_or(self.img, self.blank_canvas)
+            cv2.rectangle(self.edited_frame, (cur_x, cur_y), (cur_x + cur_w, cur_y + cur_h), (0, 255, 0), 3)
 
-        # # stack image
-        self.imgStack = self.stackImages(0.40,
-                                         ([self.img, self.edited_frame], [self.blank_canvas, self.superimpose_img]))
-
-        # self.superimpose_img = copy.deepcopy(self.img)
-        if not self.kill_image_detection_window:
-            cv2.imshow("stack_img", self.imgStack)
-            # Creating a key to wait
-            wait_key = cv2.waitKey(1)
-
-        # With the help of the 'm' key ending the whole process of our system
-
-
-        """Press 'm' key to clear all points"""
-        if wait_key == ord('m'):
-            self.image_detection_coord_list = []
-            self.initialise_canvas = False
-
-        """Press 's' key to draw best fit line"""
-        if wait_key == ord('s'):
-            if len(self.coord_list) > 3:
-                self.curr_x, self.curr_y = 0, 0
-                self.prev_x, self.prev_y = 0, 0
-                self.tol_x = 20
-                self.tol_y = 20
-                self.initialise = False
-                for idx, i in enumerate(self.coord_list):
-                    # print(idx, i)
-                    if self.curr_x == 0 and self.curr_y == 0:
-                        self.initialise = True
-                        self.prev_x, self.prev_y = i[0], i[1]
-
-                    curr_x, curr_y = i[0], i[1]
-                    if ((self.prev_x - self.curr_x) < -self.tol_x) or (
-                            (self.curr_y - self.prev_y) < -self.tol_y) and self.initialise == True:
-                        self.coord_list.pop(idx)
-                    else:
-                        self.prev_x, self.prev_y = i[0], i[1]
-            coord_array = np.array(self.coord_list)
-
-            # coord_array = np.array(self.coord_list)
-            [vx, vy, x0, y0] = cv2.fitLine(coord_array, cv2.DIST_L1, 0, 0.01, 0.01)
-            #
-            # print(vx, vy, x0, y0)
-            y_axis = np.array([0, 1])  # unit vector in the same direction as the x axis
-            your_line = np.array(vx[0], vy[0])  # unit vector in the same direction as your line
-            dot_product = np.dot(y_axis, your_line)
-            angle_2_y = np.arcsin(dot_product)
-            # print(angle_2_y)
-            #
-            angle_2_y_in_degree = (angle_2_y / math.pi * 180)
-            best_fit_angle = "_" + str(angle_2_y_in_degree[1]) + "_"
-            #     # Releasing the video
-            #
-            (x0, y0), (x1, y1) = self.calculateBestFitLine(vx[0], vy[0], x0[0], y0[0])
-            cv2.line(self.edited_frame, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
-            cv2.line(self.blank_canvas, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
-
-            # cv2.line(self.superimpose_img, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
-            print(best_fit_angle)
-            img = Image.fromarray(self.edited_frame)
-            img.save(str(best_fit_angle)+"edited_img")
-
-            img1 = Image.fromarray(self.blank_canvas)
-            img1.save(str(best_fit_angle)+"blank_canvas")
-
-
-        if wait_key == ord('q'):
-            self.kill_image_detection_window = True
-            cv2.destroyAllWindows()
-
-        self.initialState = None
-
-    def image_detection_window(self):
-        gray_image = self.img
-        # gray_image = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
-        self.edited_frame = copy.deepcopy(self.img)
-
-        gray_frame = cv2.GaussianBlur(gray_image, (21, 21), 0)
-        if not self.initialise_canvas:
-            self.blank_canvas = np.zeros_like(gray_frame)
-            self.initialise_canvas = True
-
-        if self.initialState is None:
-            self.initialState = gray_frame
-            return
-
-        differ_frame = cv2.absdiff(self.initialState, gray_frame)
-
-        # thresh_frame = differ_frame
-        thresh_frame = cv2.threshold(differ_frame, 30, 255, cv2.THRESH_BINARY)[1]
-
-        thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
-
-        # For the moving object in the frame finding the coutours
-
-        # self.imgStack = self.stackImages(0.40,([self.img,self.img],[self.img,self.img]))
-
-        cont, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.circle(self.blank_canvas, (cX, cY), 7, (255, 255, 0), -1)
+        #     # from the frame adding the motion status
         #
-        for cur in cont:
-            #
-            if cv2.contourArea(cur) < 50 or len(cont) > 3 or cv2.contourArea(cur) > 500:
-                continue
-            #
-            (cur_x, cur_y, cur_w, cur_h) = cv2.boundingRect(cur)
-            #
-            M = cv2.moments(cur)
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            #     print(cX, cY)
-            if ((682<=cX<=1178) and (5<=cY<=463)):
-                self.coord_list.append([cX, cY])
+        # # Instead of using cv2.bitwise to superimpose object use self.show_bfl
+        # self.superimpose_img = cv2.bitwise_or(self.img, self.blank_canvas)
 
-                self.image_detection_coord_list.append([cX, cY])
-                cv2.drawContours(self.edited_frame, [cur], -1, (0, 255, 0), 2)
-                cv2.circle(self.edited_frame, (cX, cY), 7, (255, 255, 255), -1)
-                # To create a rectangle of green color around the moving object
-                #
-                cv2.rectangle(self.edited_frame, (cur_x, cur_y), (cur_x + cur_w, cur_y + cur_h), (0, 255, 0), 3)
+        for i in self.coord_list:
+            # print(i)
+            cv2.circle(self.edited_frame, (i[0], i[1]), 5, (255, 255, 0), -1)
 
-                cv2.circle(self.blank_canvas, (cX, cY), 7, (255, 255, 0), -1)
-            #     # from the frame adding the motion status
-            #
-        self.superimpose_img = cv2.bitwise_or(self.img, self.blank_canvas)
+        for i in self.image_detection_coord_list:
+            cv2.circle(self.superimpose_img,(i[0],i[1]), 5, (255, 255, 0), -1)
+
+        if self.show_bfl == True:
+            cv2.line(self.superimpose_img, (self.curr_x, self.curr_y), (self.prev_x, self.prev_y), (255, 0, 0), 3)
+            cv2.putText(self.superimpose_img, '{}'.format(self.angle_2_y_in_degree), (100, 100),
+                        cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
+
 
         # # stack image
         self.imgStack = self.stackImages(0.40,
                                          ([self.img, self.edited_frame], [self.blank_canvas, self.superimpose_img]))
 
-        # self.superimpose_img = copy.deepcopy(self.img)
+
+        # With the help of the 'm' key ending the whole process of our system
+
         if not self.kill_image_detection_window:
             cv2.imshow("stack_img", self.imgStack)
             # Creating a key to wait
             wait_key = cv2.waitKey(1)
 
-        # With the help of the 'm' key ending the whole process of our system
+            """Press 'c' key to clear all points"""
+            if wait_key == ord('c'):
+                self.image_detection_coord_list = []
+                self.coord_list = []
+                self.edited_frame = copy.deepcopy(self.img)
+                self.superimpose_img = copy.deepcopy(self.img)
+                self.initialise_canvas = False
+
+            if wait_key == ord('m'):
+                #
+                coord_array = np.array(self.image_detection_coord_list)
+                [vx, vy, x0, y0] = cv2.fitLine(coord_array, cv2.DIST_L1, 0, 0.01, 0.01)
+
+                y_axis = np.array([0, 1])  # unit vector in the same direction as the x axis
+                your_line = np.array(vx[0], vy[0])  # unit vector in the same direction as your line
+                dot_product = np.dot(y_axis, your_line)
+                angle_2_y = np.arcsin(dot_product)
+                print(angle_2_y)
+
+                self.angle_2_y_in_degree = (angle_2_y / math.pi * 180)
+                self.angle_2_y_in_degree = round(self.angle_2_y_in_degree[1],3)
+                print(self.angle_2_y_in_degree)
+
+                a,b = self.get_needle_tip_pt(self.image_detection_coord_list)
+
+                self.curr_x,self.curr_y,self.prev_x, self.prev_y = self.drawBestFitLine(vx[0], vy[0], x0[0], y0[0], self.edited_frame, a)
+                self.show_bfl = True
 
 
-        """Press 'm' key to clear all points"""
-        if wait_key == ord('m'):
-            self.image_detection_coord_list = []
-            self.initialise_canvas = False
+            if wait_key == ord('s'):
+                img = Image.fromarray(self.superimpose_img)
+                img.save(str(self.angle_2_y_in_degree) + "edited_img.png")
+                #
+                img1 = Image.fromarray(self.edited_frame)
+                img1.save(str(self.angle_2_y_in_degree) + "blank_canvas.png")
 
-        """Press 's' key to draw best fit line"""
-        if wait_key == ord('s'):
-            if len(self.coord_list) > 3:
-                self.curr_x, self.curr_y = 0, 0
-                self.prev_x, self.prev_y = 0, 0
-                self.tol_x = 20
-                self.tol_y = 20
-                self.initialise = False
-                for idx, i in enumerate(self.coord_list):
-                    # print(idx, i)
-                    if self.curr_x == 0 and self.curr_y == 0:
-                        self.initialise = True
-                        self.prev_x, self.prev_y = i[0], i[1]
 
-                    curr_x, curr_y = i[0], i[1]
-                    if ((self.prev_x - self.curr_x) < -self.tol_x) or (
-                            (self.curr_y - self.prev_y) < -self.tol_y) and self.initialise == True:
-                        self.coord_list.pop(idx)
-                    else:
-                        self.prev_x, self.prev_y = i[0], i[1]
-            coord_array = np.array(self.coord_list)
-
-            # coord_array = np.array(self.coord_list)
-            [vx, vy, x0, y0] = cv2.fitLine(coord_array, cv2.DIST_L1, 0, 0.01, 0.01)
+            # if wait_key == ord('p'):
+            #     self.image_detection_ready = True
+            #     cv2.putText(self.superimpose_img, '{}'.format(str(self.image_detection_ready)), (100, 100),
+            #                 cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.6, (255, 255, 255), 2)
             #
-            # print(vx, vy, x0, y0)
-            y_axis = np.array([0, 1])  # unit vector in the same direction as the x axis
-            your_line = np.array(vx[0], vy[0])  # unit vector in the same direction as your line
-            dot_product = np.dot(y_axis, your_line)
-            angle_2_y = np.arcsin(dot_product)
-            # print(angle_2_y)
+
+            if wait_key == ord('p'):
+                coord_array = np.array(self.image_detection_coord_list)
+                [vx, vy, x0, y0] = cv2.fitLine(coord_array, cv2.DIST_L1, 0, 0.01, 0.01)
+
+                y_axis = np.array([0, 1])  # unit vector in the same direction as the x axis
+                your_line = np.array(vx[0], vy[0])  # unit vector in the same direction as your line
+                dot_product = np.dot(y_axis, your_line)
+                angle_2_y = np.arcsin(dot_product)
+                print(angle_2_y)
+
+                a,b = self.get_needle_tip_pt(self.image_detection_coord_list)
+
+                self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y, self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = self.drawBestFitLine(vx[0], vy[0], x0[0], y0[0], self.edited_frame, a)
+                self.calculate_equation_RCM_01()
+                cv2.line(self.superimpose_img, (self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y), (self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y), (255, 0, 0), 3)
+
+                self.show_bfl =True
+
+            if wait_key == ord('o'):
+                coord_array = np.array(self.image_detection_coord_list)
+                [vx, vy, x0, y0] = cv2.fitLine(coord_array, cv2.DIST_L1, 0, 0.01, 0.01)
+
+                y_axis = np.array([0, 1])  # unit vector in the same direction as the x axis
+                your_line = np.array(vx[0], vy[0])  # unit vector in the same direction as your line
+                dot_product = np.dot(y_axis, your_line)
+                angle_2_y = np.arcsin(dot_product)
+                print(angle_2_y)
+
+                a, b = self.get_needle_tip_pt(self.image_detection_coord_list)
+
+                self.RCM_02_START_PIXEL_X, self.RCM_02_START_PIXEL_Y, self.RCM_02_END_PIXEL_X, self.RCM_02_END_PIXEL_Y = self.drawBestFitLine(
+                    vx[0], vy[0], x0[0], y0[0], self.edited_frame, a)
+                self.calculate_equation_RCM_02()
+                cv2.line(self.superimpose_img, (self.RCM_02_START_PIXEL_X, self.RCM_02_START_PIXEL_Y), (self.RCM_02_END_PIXEL_X, self.RCM_02_END_PIXEL_Y), (255, 0, 0), 3)
+
+
+                self.show_bfl = True
+
+            """Press 's' key to draw best fit line"""
+            # if wait_key == ord('s'):
+            #     if len(self.coord_list) > 3:
+            #         self.curr_x, self.curr_y = 0, 0
+            #         self.prev_x, self.prev_y = 0, 0
+            #         self.tol_x = 20
+            #         self.tol_y = 20
+            #         self.initialise = False
+            #         for idx, i in enumerate(self.coord_list):
+            #             # print(idx, i)
+            #             if self.curr_x == 0 and self.curr_y == 0:
+            #                 self.initialise = True
+            #                 self.prev_x, self.prev_y = i[0], i[1]
             #
-            angle_2_y_in_degree = (angle_2_y / math.pi * 180)
-            best_fit_angle = "_" + str(angle_2_y_in_degree[1]) + "_"
-            #     # Releasing the video
+            #             curr_x, curr_y = i[0], i[1]
+            #             if ((self.prev_x - self.curr_x) < -self.tol_x) or (
+            #                     (self.curr_y - self.prev_y) < -self.tol_y) and self.initialise == True:
+            #                 self.coord_list.pop(idx)
+            #             else:
+            #                 self.prev_x, self.prev_y = i[0], i[1]
+            #     coord_array = np.array(self.coord_list)
             #
-            (x0, y0), (x1, y1) = self.calculateBestFitLine(vx[0], vy[0], x0[0], y0[0])
-            cv2.line(self.edited_frame, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
-            cv2.line(self.blank_canvas, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
+            #     # coord_array = np.array(self.coord_list)
+            #     [vx, vy, x0, y0] = cv2.fitLine(coord_array, cv2.DIST_L1, 0, 0.01, 0.01)
+            #     #
+            #     # print(vx, vy, x0, y0)
+            #     y_axis = np.array([0, 1])  # unit vector in the same direction as the x axis
+            #     your_line = np.array(vx[0], vy[0])  # unit vector in the same direction as your line
+            #     dot_product = np.dot(y_axis, your_line)
+            #     angle_2_y = np.arcsin(dot_product)
+            #     # print(angle_2_y)
+            #     #
+            #     angle_2_y_in_degree = (angle_2_y / math.pi * 180)
+            #     best_fit_angle = "_" + str(angle_2_y_in_degree[1]) + "_"
+            #     #     # Releasing the video
+            #     #
+            #     (x0, y0), (x1, y1) = self.calculateBestFitLine(vx[0], vy[0], x0[0], y0[0])
+            #     cv2.line(self.edited_frame, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
+            #     cv2.line(self.blank_canvas, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
+            #
+            #     # cv2.line(self.superimpose_img, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
+            #     print(best_fit_angle)
+            #     img = Image.fromarray(self.edited_frame)
+            #     img.save(str(best_fit_angle) + "edited_img")
+            #
+            #     img1 = Image.fromarray(self.blank_canvas)
+            #     img1.save(str(best_fit_angle) + "blank_canvas")
 
-            # cv2.line(self.superimpose_img, (int(x0), int(y0)), (int(x1), int(y1)), (255, 0, 0), 3)
-            print(best_fit_angle)
-            img = Image.fromarray(self.edited_frame)
-            img.save(str(best_fit_angle)+"edited_img")
-
-            img1 = Image.fromarray(self.blank_canvas)
-            img1.save(str(best_fit_angle)+"blank_canvas")
 
 
-        if wait_key == ord('q'):
-            self.kill_image_detection_window = True
-            cv2.destroyAllWindows()
+            if wait_key == ord('q'):
+                self.kill_image_detection_window = True
+                cv2.destroyAllWindows()
 
         self.initialState = None
 
@@ -990,27 +1135,29 @@ class US_IMAGE():
         if (event == cv2.EVENT_LBUTTONDOWN):
             self.cache4_img = copy.deepcopy(self.img)
 
-            self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = x,y
-            cv2.circle(self.cache4_img,(self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y),radius = 5, color =(255,0,0), thickness=-1)
-            cv2.imshow("DRAW_RCM_LINE_01",self.cache4_img)
+            self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = x, y
+            cv2.circle(self.cache4_img, (self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y), radius=5,
+                       color=(255, 0, 0), thickness=-1)
+            cv2.imshow("DRAW_RCM_LINE_01", self.cache4_img)
             self.draw_RCM_01_bool = True
 
         elif (event == cv2.EVENT_MBUTTONDOWN):
             self.cache4_img = copy.deepcopy(self.img)
-            self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = 0,0
-            self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = 0,0
+            self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y = 0, 0
+            self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = 0, 0
             self.draw_RCM_01_bool = False
             cv2.imshow("DRAW_RCM_LINE_01", self.cache4_img)
 
         elif (event == cv2.EVENT_RBUTTONDOWN):
-            self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = x,y
-            cv2.circle(self.cache4_img, (self.RCM_01_END_PIXEL_X,self.RCM_01_END_PIXEL_Y),radius = 5, color = (0,0,255), thickness = -1)
-            cv2.line(self.cache4_img, (self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y),(self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y), (255, 255, 255), 3)
+            self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y = x, y
+            cv2.circle(self.cache4_img, (self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y), radius=5, color=(0, 0, 255),
+                       thickness=-1)
+            cv2.line(self.cache4_img, (self.RCM_01_START_PIXEL_X, self.RCM_01_START_PIXEL_Y),
+                     (self.RCM_01_END_PIXEL_X, self.RCM_01_END_PIXEL_Y), (255, 255, 255), 3)
 
             self.calculate_equation_RCM_01()
             self.draw_RCM_01_bool = True
             cv2.imshow("DRAW_RCM_LINE_01", self.cache4_img)
-
 
     def Mouse_Callback_Draw_RCM02(self, event, x, y, flags, param):
         """Mouse callback event using CV2
@@ -1051,7 +1198,8 @@ class US_IMAGE():
 
 
 
-    def draw_RCM_Line(self,img_number):
+
+    def draw_RCM_Line(self, img_number):
         if img_number == 1:
             if not self.draw_RCM_01_bool:
                 self.draw_RCM01_img = self.img
@@ -1069,20 +1217,44 @@ class US_IMAGE():
             cv2.imshow("DRAW_RCM_LINE_02", self.draw_RCM02_img)
             cv2.setMouseCallback("DRAW_RCM_LINE_02", self.Mouse_Callback_Draw_RCM02)
 
-
     def calculate_equation_RCM_01(self):
-        self.gradient_RCM_01 = (self.RCM_01_END_PIXEL_Y-self.RCM_01_START_PIXEL_Y) / (self.RCM_01_END_PIXEL_X-self.RCM_01_START_PIXEL_X)
+        self.gradient_RCM_01 = (self.RCM_01_END_PIXEL_Y - self.RCM_01_START_PIXEL_Y) / (
+                    self.RCM_01_END_PIXEL_X - self.RCM_01_START_PIXEL_X)
         self.intersect_RCM_01 = self.RCM_01_END_PIXEL_Y - (self.gradient_RCM_01 * self.RCM_01_END_PIXEL_X)
+
     def calculate_equation_RCM_02(self):
         self.gradient_RCM_02 = (self.RCM_02_END_PIXEL_Y - self.RCM_02_START_PIXEL_Y) / (
-                    self.RCM_02_END_PIXEL_X - self.RCM_02_START_PIXEL_X)
+                self.RCM_02_END_PIXEL_X - self.RCM_02_START_PIXEL_X)
         self.intersect_RCM_02 = self.RCM_02_END_PIXEL_Y - (self.gradient_RCM_02 * self.RCM_02_END_PIXEL_X)
 
     def calculate_RCM_px(self):
-        self.RCM_PIXEL_X = int((self.intersect_RCM_02-self.intersect_RCM_01)/(self.gradient_RCM_01-self.gradient_RCM_02))
-        self.RCM_PIXEL_Y = int(self.gradient_RCM_01*self.RCM_PIXEL_X + self.intersect_RCM_01)
+        self.RCM_PIXEL_X = int(
+            (self.intersect_RCM_02 - self.intersect_RCM_01) / (self.gradient_RCM_01 - self.gradient_RCM_02))
+        self.RCM_PIXEL_Y = int(self.gradient_RCM_01 * self.RCM_PIXEL_X + self.intersect_RCM_01)
 
     def overwrite_RCM_value(self):
-        self.RCM_PIXEL_X = int((238.16-self.Overwrite_RCM_X_Entry_Value)/self.mm_per_pixel)+self.Origin_Pixel_X
-        self.RCM_PIXEL_Y = int((self.Overwrite_RCM_Y_Entry_Value-294.80)/self.mm_per_pixel)+self.Origin_Pixel_Y
+        self.RCM_PIXEL_X = int((238.16 - self.Overwrite_RCM_X_Entry_Value) / self.mm_per_pixel) + self.Origin_Pixel_X
+        self.RCM_PIXEL_Y = int((self.Overwrite_RCM_Y_Entry_Value - 294.80) / self.mm_per_pixel) + self.Origin_Pixel_Y
 
+    def drawBestFitLine(self,vx, vy, x0, y0, img, xpt):
+        x_pt1 = xpt
+        y_pt1 = int(((vy * x0 - vx * y0) - vy * x_pt1) / -vx)
+
+        y_pt2 = 0
+        x_pt2 = int(((vy * x0 - vx * y0) + vx * y_pt2) / vy)
+
+        # cv2.line(img, (x_pt1, y_pt1), (x_pt2, y_pt2), (255, 0, 0), 3)
+        return x_pt1, y_pt1, x_pt2, y_pt2
+
+    def get_needle_tip_pt(self, lst):
+        lowest_x = None
+        highest_y = None
+        for i in lst:
+            if lowest_x == None:
+                lowest_x = i[0]
+            if highest_y == None:
+                highest_y = i[1]
+            if i[0] < lowest_x and i[1] > highest_y:
+                lowest_x = i[0]
+                highest_y = i[1]
+        return lowest_x, highest_y
